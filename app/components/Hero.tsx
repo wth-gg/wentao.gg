@@ -141,7 +141,7 @@ export default function Hero() {
       className: "block text-2xl md:text-4xl font-semibold text-muted mb-4",
     },
     {
-      text: "Building systems that scale. Background in AI/ML and robotics, focused on data infrastructure and analytics that drive product decisions.",
+      text: "Building infrastructure to scale, shaping data to drive product decisions.",
       className: "block text-lg text-muted max-w-2xl leading-relaxed",
     },
   ];
