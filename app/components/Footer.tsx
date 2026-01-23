@@ -1,38 +1,26 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Github, Linkedin, Mail } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="py-12 px-6 border-t border-border">
+    <footer className="fixed bottom-0 left-0 right-0 z-40 py-4 px-6 bg-background/80 backdrop-blur-lg border-t border-border">
       <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            <p className="text-muted text-sm">
-              &copy; {currentYear} Wentao. All rights reserved.
-            </p>
-          </motion.div>
+        <div className="flex items-center justify-between">
+          <p className="text-muted text-sm">
+            &copy; {currentYear} Wentao
+          </p>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="flex items-center gap-6"
-          >
+          <div className="flex items-center gap-5">
             <a
-              href="https://linkedin.com/in/yourprofile"
+              href="https://linkedin.com/in/wentaohe"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted hover:text-foreground transition-colors"
             >
-              <Linkedin size={20} />
+              <Linkedin size={18} />
             </a>
             <a
               href="https://github.com/yourusername"
@@ -40,15 +28,15 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="text-muted hover:text-foreground transition-colors"
             >
-              <Github size={20} />
+              <Github size={18} />
             </a>
             <a
               href="mailto:your@email.com"
               className="text-muted hover:text-foreground transition-colors"
             >
-              <Mail size={20} />
+              <Mail size={18} />
             </a>
-          </motion.div>
+          </div>
         </div>
       </div>
     </footer>

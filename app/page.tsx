@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <>
       <Navigation />
-      <main>
+      <main className="pb-20">
         <Hero />
         <Education />
         <Experience />
