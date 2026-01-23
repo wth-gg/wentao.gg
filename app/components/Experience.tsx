@@ -2,32 +2,68 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { Briefcase } from "lucide-react";
+import { MapPin, Calendar } from "lucide-react";
+import Image from "next/image";
 
-const experiences = [
+interface Experience {
+  title: string;
+  company: string;
+  logo?: string;
+  period: string;
+  location: string;
+  description: string[];
+  technologies: string[];
+}
+
+const experiences: Experience[] = [
   {
-    title: "Software Engineer",
-    company: "Tech Company",
-    period: "2023 - Present",
-    description:
-      "Building scalable web applications and microservices. Leading frontend development initiatives and mentoring junior developers.",
-    technologies: ["React", "TypeScript", "Node.js", "AWS"],
+    title: "Data Engineer",
+    company: "Meta",
+    logo: "/images/profile/meta_logo.jpeg",
+    period: "May 2024 - Present",
+    location: "New York City, NY",
+    description: [
+      "Owned large-scale multi-device data infrastructure and pipeline development, enabling data-driven decisions to support AR Glasses and next-gen wearable product launches.",
+      "Built a scalable contribution analysis framework powering tier-0 product analytics metrics from user- and device-level event data, enabling automated alerting and root-cause analysis across executive dashboards.",
+      "Designed canonical validation datasets and a fault-tolerant framework, quantifying impacted users/devices and accelerating debugging of data integrity issues during launches.",
+    ],
+    technologies: ["Python", "SQL", "Java", "PHP", "Spark", "Presto"],
   },
   {
-    title: "Software Engineering Intern",
-    company: "Startup Inc",
-    period: "Summer 2022",
-    description:
-      "Developed full-stack features for the main product. Implemented CI/CD pipelines and improved test coverage by 40%.",
-    technologies: ["Python", "Django", "PostgreSQL", "Docker"],
+    title: "Data Engineer",
+    company: "Cherre",
+    logo: "/images/profile/cherre_logo.jpeg",
+    period: "Nov 2022 - May 2024",
+    location: "New York City, NY",
+    description: [
+      "Deployed transformer-based text classification and LLM extraction pipelines for real estate documents, achieving 95%+ accuracy through systematic evaluation and error analysis.",
+      "Engineered and operated automated, TB-scale data pipelines across AWS and GCP, leveraging Docker and Kubernetes to improve scalability and deployment velocity.",
+    ],
+    technologies: ["Python", "SQL", "PyTorch", "Postgres", "BigQuery", "Airflow", "dbt", "AWS", "GCP", "Docker", "Kubernetes"],
   },
   {
-    title: "Research Assistant",
-    company: "University Lab",
-    period: "2021 - 2022",
-    description:
-      "Conducted research on distributed systems and machine learning. Published papers on optimization algorithms.",
-    technologies: ["Python", "TensorFlow", "Kubernetes", "Go"],
+    title: "Data Engineer",
+    company: "Mashey",
+    logo: "/images/profile/mashey_logo.jpeg",
+    period: "Oct 2021 - Nov 2022",
+    location: "Remote",
+    description: [
+      "Developed a property recommendation engine using 15+ features, improving user engagement by 40% and increasing search relevance.",
+      "Architected cloud data warehouse infrastructure with near-real-time ingestion pipelines processing 10M+ property records daily.",
+    ],
+    technologies: ["Python", "SQL", "PyTorch", "Postgres", "BigQuery", "Airflow", "dbt", "AWS", "GCP", "Docker", "Kubernetes"],
+  },
+  {
+    title: "Machine Learning Engineer",
+    company: "Jefferson Street Technologies",
+    logo: "/images/profile/jefferson_street_technologies_logo.jpeg",
+    period: "May 2020 - Oct 2021",
+    location: "Remote",
+    description: [
+      "Implemented predictive ML models for financial datasets, improving portfolio returns by 6% annually through rapid prototyping and evaluation.",
+      "Built and productionized ML pipelines, reducing training time by 60% while maintaining 99.8% data quality.",
+    ],
+    technologies: ["Python", "SQL", "TensorFlow", "PyTorch", "RAG"],
   },
 ];
 
@@ -35,7 +71,7 @@ function ExperienceCard({
   experience,
   index,
 }: {
-  experience: (typeof experiences)[0];
+  experience: Experience;
   index: number;
 }) {
   const cardRef = useRef(null);
@@ -66,37 +102,59 @@ function ExperienceCard({
             whileInView={{ scale: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="w-4 h-4 bg-accent rounded-full z-10"
+            className="w-3 h-3 bg-accent rounded-full z-10"
           />
           {index < experiences.length - 1 && (
-            <div className="w-0.5 h-full bg-border absolute top-4 left-[7px]" />
+            <div className="w-0.5 h-full bg-border absolute top-3 left-[5px]" />
           )}
         </div>
 
         {/* Card content */}
         <div className="flex-1 bg-card hover:bg-card-hover rounded-xl p-6 md:p-8 transition-all duration-300 border border-transparent hover:border-border hover:card-shadow group">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-xl md:text-2xl font-semibold group-hover:text-accent transition-colors">
-                {experience.title}
+          <div className="flex items-center gap-4 mb-4">
+            {experience.logo && (
+              <div className="flex-shrink-0 w-12 h-12 bg-white">
+                <Image
+                  src={experience.logo}
+                  alt={`${experience.company} logo`}
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            )}
+            <div className="flex-1">
+              <h3 className="text-xl md:text-2xl font-semibold text-foreground group-hover:text-accent transition-colors">
+                {experience.company}
               </h3>
-              <p className="text-accent font-medium mt-1">{experience.company}</p>
-            </div>
-            <div className="flex items-center gap-2 text-muted">
-              <Briefcase size={16} />
-              <span className="text-sm font-mono">{experience.period}</span>
+              <p className="text-accent font-medium">{experience.title}</p>
             </div>
           </div>
 
-          <p className="text-muted leading-relaxed mb-6">
-            {experience.description}
-          </p>
+          <div className="flex flex-wrap items-center gap-4 text-sm text-muted mb-4">
+            <span className="flex items-center gap-1.5">
+              <Calendar size={14} className="text-muted" />
+              {experience.period}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MapPin size={14} className="text-muted" />
+              {experience.location}
+            </span>
+          </div>
+
+          <ul className="space-y-2 mb-6">
+            {experience.description.map((item, i) => (
+              <li key={i} className="text-muted leading-relaxed pl-4 border-l border-border">
+                {item}
+              </li>
+            ))}
+          </ul>
 
           <div className="flex flex-wrap gap-2">
             {experience.technologies.map((tech) => (
               <span
                 key={tech}
-                className="px-3 py-1.5 text-xs font-medium bg-background text-muted rounded-lg border border-border"
+                className="px-3 py-1 text-xs font-medium bg-muted/20 text-foreground rounded-full"
               >
                 {tech}
               </span>
