@@ -2,7 +2,8 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { GraduationCap, MapPin, Calendar } from "lucide-react";
+import { MapPin, Calendar } from "lucide-react";
+import Image from "next/image";
 
 interface Degree {
   degreeType: string;
@@ -26,6 +27,7 @@ interface School {
 const education: School[] = [
   {
     name: "University of Pennsylvania",
+    logo: "/images/profile/University-of-Pennsylvania-Logo-PNG7.png",
     degrees: [
       {
         degreeType: "Master of Science",
@@ -38,6 +40,7 @@ const education: School[] = [
   },
   {
     name: "Carnegie Mellon University",
+    logo: "/images/profile/cmu-wordmark-square-w-on-r.png",
     degrees: [
       {
         degreeType: "Master of Science",
@@ -94,20 +97,30 @@ function EducationCard({
             whileInView={{ scale: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="w-4 h-4 bg-accent rounded-full z-10 flex items-center justify-center"
-          >
-            <GraduationCap size={10} className="text-background" />
-          </motion.div>
+            className="w-3 h-3 bg-accent rounded-full z-10"
+          />
           {index < education.length - 1 && (
-            <div className="w-0.5 h-full bg-border absolute top-4 left-[7px]" />
+            <div className="w-0.5 h-full bg-border absolute top-3 left-[5px]" />
           )}
         </div>
 
         {/* Card content */}
         <div className="flex-1 bg-card hover:bg-card-hover rounded-xl p-6 md:p-8 transition-all duration-300 border border-transparent hover:border-border hover:card-shadow group">
-          <h3 className="text-xl md:text-2xl font-semibold text-foreground mb-4 group-hover:text-accent transition-colors">
-            {school.name}
-          </h3>
+          <div className="flex items-center gap-4 mb-4">
+            {school.logo && (
+              <div className="relative w-12 h-12 flex-shrink-0 bg-white rounded-xl overflow-hidden p-1.5">
+                <Image
+                  src={school.logo}
+                  alt={`${school.name} logo`}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            )}
+            <h3 className="text-xl md:text-2xl font-semibold text-foreground group-hover:text-accent transition-colors">
+              {school.name}
+            </h3>
+          </div>
 
           <div className="space-y-4">
             {school.degrees.map((degree, degreeIndex) => (
