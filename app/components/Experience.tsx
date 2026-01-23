@@ -48,9 +48,9 @@ function ExperienceCard({
   const x = useTransform(
     scrollYProgress,
     [0, 0.5, 1],
-    [index % 2 === 0 ? -100 : 100, 0, 0]
+    [index % 2 === 0 ? -60 : 60, 0, 0]
   );
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 1]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.95, 1, 1]);
 
   return (
     <motion.div
@@ -74,7 +74,7 @@ function ExperienceCard({
         </div>
 
         {/* Card content */}
-        <div className="flex-1 bg-card hover:bg-card-hover rounded-2xl p-6 md:p-8 transition-all duration-300 border border-transparent hover:border-border group">
+        <div className="flex-1 bg-card hover:bg-card-hover rounded-xl p-6 md:p-8 transition-all duration-300 border border-transparent hover:border-border hover:card-shadow group">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-xl md:text-2xl font-semibold group-hover:text-accent transition-colors">
@@ -112,20 +112,20 @@ export default function Experience() {
   const containerRef = useRef(null);
 
   return (
-    <section id="experience" className="py-32 px-6 bg-card/30">
-      <div className="max-w-6xl mx-auto">
+    <section id="experience" className="py-24 px-6 bg-card/30">
+      <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mb-16"
+          className="mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Experience</h2>
-          <div className="w-20 h-1 bg-accent" />
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Experience</h2>
+          <div className="w-16 h-1 bg-accent" />
         </motion.div>
 
-        <div ref={containerRef} className="space-y-12 md:space-y-16">
+        <div ref={containerRef} className="space-y-8 md:space-y-10">
           {experiences.map((experience, index) => (
             <ExperienceCard key={index} experience={experience} index={index} />
           ))}

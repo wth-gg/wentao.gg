@@ -50,17 +50,17 @@ const itemVariants = {
 
 export default function Projects() {
   return (
-    <section id="projects" className="py-32 px-6">
-      <div className="max-w-6xl mx-auto">
+    <section id="projects" className="py-24 px-6">
+      <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mb-16"
+          className="mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Projects</h2>
-          <div className="w-20 h-1 bg-accent" />
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Projects</h2>
+          <div className="w-16 h-1 bg-accent" />
         </motion.div>
 
         <motion.div
@@ -68,14 +68,14 @@ export default function Projects() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
         >
           {projects.map((project, index) => (
             <motion.div
               key={index}
               variants={itemVariants}
               transition={{ duration: 0.5 }}
-              className="group bg-card rounded-2xl overflow-hidden border border-transparent hover:border-border transition-all duration-300"
+              className="group bg-card rounded-xl overflow-hidden border border-transparent hover:border-border hover:card-shadow transition-all duration-300"
             >
               <div className="relative h-48 bg-background overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center">

@@ -61,3 +61,12 @@ body {
   background: var(--accent);
   color: white;
 }
+
+/* Subtle shadow for cards */
+.card-shadow {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.footer-shadow {
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}

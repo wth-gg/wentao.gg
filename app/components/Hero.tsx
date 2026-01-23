@@ -151,7 +151,7 @@ export default function Hero() {
       id="about"
       className="min-h-screen flex flex-col justify-center px-6 pt-20"
     >
-      <div className="max-w-6xl mx-auto w-full">
+      <div className="max-w-5xl mx-auto w-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
