@@ -1,35 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ExternalLink, Github } from "lucide-react";
+import { ExternalLink, Dumbbell } from "lucide-react";
+import Link from "next/link";
 
 const projects = [
   {
-    title: "Project One",
+    title: "PowerOPPS",
     description:
-      "A full-stack web application that helps users manage their daily tasks with real-time collaboration features.",
-    image: "/images/projects/placeholder.svg",
-    technologies: ["React", "Node.js", "MongoDB", "Socket.io"],
-    github: "https://github.com",
-    live: "https://example.com",
-  },
-  {
-    title: "Project Two",
-    description:
-      "An AI-powered tool that analyzes code quality and provides suggestions for improvement.",
-    image: "/images/projects/placeholder.svg",
-    technologies: ["Python", "FastAPI", "TensorFlow", "Docker"],
-    github: "https://github.com",
-    live: "https://example.com",
-  },
-  {
-    title: "Project Three",
-    description:
-      "A mobile-first e-commerce platform with seamless payment integration and inventory management.",
-    image: "/images/projects/placeholder.svg",
-    technologies: ["Next.js", "Stripe", "PostgreSQL", "Tailwind"],
-    github: "https://github.com",
-    live: "https://example.com",
+      "A powerlifting index calculator that computes performance scores across 5 standardized systems (IPF GL, DOTS, Wilks 2.0, IPF, Old Wilks) with reverse calculation for target planning.",
+    technologies: ["Next.js", "TypeScript", "Tailwind", "Framer Motion"],
+    href: "/projects/poweropps",
+    icon: Dumbbell,
   },
 ];
 
@@ -75,52 +57,41 @@ export default function Projects() {
               key={index}
               variants={itemVariants}
               transition={{ duration: 0.5 }}
-              className="group bg-card rounded-xl overflow-hidden border border-transparent hover:border-border hover:card-shadow transition-all duration-300"
             >
-              <div className="relative h-48 bg-background overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center">
-                  <span className="text-4xl font-bold text-accent/30">
-                    {project.title.charAt(0)}
-                  </span>
+              <Link
+                href={project.href}
+                className="group block bg-card rounded-xl overflow-hidden border border-transparent hover:border-border hover:card-shadow transition-all duration-300 h-full"
+              >
+                <div className="relative h-48 bg-background overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center">
+                    <project.icon className="w-12 h-12 text-accent/40 group-hover:text-accent/60 transition-colors" />
+                  </div>
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="p-3 bg-accent rounded-full">
+                      <ExternalLink size={20} className="text-white" />
+                    </div>
+                  </div>
                 </div>
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                  <a
-                    href={project.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-                  >
-                    <Github size={20} />
-                  </a>
-                  <a
-                    href={project.live}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-                  >
-                    <ExternalLink size={20} />
-                  </a>
-                </div>
-              </div>
 
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2 group-hover:text-accent transition-colors">
-                  {project.title}
-                </h3>
-                <p className="text-muted text-sm leading-relaxed mb-4">
-                  {project.description}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {project.technologies.map((tech) => (
-                    <span
-                      key={tech}
-                      className="px-2 py-1 text-xs font-medium bg-background text-muted rounded border border-border"
-                    >
-                      {tech}
-                    </span>
-                  ))}
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-2 group-hover:text-accent transition-colors">
+                    {project.title}
+                  </h3>
+                  <p className="text-muted text-sm leading-relaxed mb-4">
+                    {project.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {project.technologies.map((tech) => (
+                      <span
+                        key={tech}
+                        className="px-2 py-1 text-xs font-medium bg-background text-muted rounded border border-border"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </Link>
             </motion.div>
           ))}
         </motion.div>

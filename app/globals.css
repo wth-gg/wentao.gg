@@ -70,3 +70,28 @@ body {
 .footer-shadow {
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
 }
+
+/* Hide number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Ensure focused inputs scroll into view on mobile */
+input:focus {
+  scroll-margin-top: 100px;
+  scroll-margin-bottom: 20px;
+}
+
+/* Prevent iOS zoom on input focus */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
