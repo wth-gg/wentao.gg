@@ -127,9 +127,7 @@ function EducationCard({
             {school.degrees.map((degree, degreeIndex) => (
               <div
                 key={degreeIndex}
-                className={`${
-                  school.degrees.length > 1 ? "pl-4 border-l border-border" : ""
-                }`}
+                className="pl-4 border-l border-border"
               >
                 <p className="font-medium mb-2">
                   <span className="text-accent">{degree.degreeType}</span>
