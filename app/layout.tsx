@@ -8,8 +8,18 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Wentao | Software Engineer",
-  description: "Personal portfolio website of Wentao - Software Engineer & Developer",
+  title: "Wentao | Engineer + Developer",
+  description: "Building cool stuff with code",
+  openGraph: {
+    title: "Wentao | Engineer + Developer",
+    description: "Building cool stuff with code",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Wentao | Engineer + Developer",
+    description: "Building cool stuff with code",
+  },
 };
 
 export default function RootLayout({
