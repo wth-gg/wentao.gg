@@ -137,11 +137,11 @@ export default function Hero() {
       className: "block text-5xl md:text-7xl font-bold tracking-tight text-foreground mb-4",
     },
     {
-      text: "Software Engineer & Developer",
+      text: "⚙️ Engineer + 💻 Developer",
       className: "block text-2xl md:text-4xl font-semibold text-muted mb-4",
     },
     {
-      text: "I build elegant, scalable software solutions that make a difference. Passionate about clean code, innovative technologies, and creating exceptional user experiences.",
+      text: "Building data infrastructure at scale. Background in AI/ML and robotics, now focused on large-scale infrastructure and analytics that power product decisions.",
       className: "block text-lg text-muted max-w-2xl leading-relaxed",
     },
   ];
@@ -185,12 +185,6 @@ export default function Hero() {
               className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors"
             >
               Get in touch
-            </a>
-            <a
-              href="#projects"
-              className="px-6 py-3 border border-border hover:border-muted text-foreground font-medium rounded-lg transition-colors"
-            >
-              View projects
             </a>
           </motion.div>
         </motion.div>
