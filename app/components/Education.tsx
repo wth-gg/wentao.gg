@@ -108,12 +108,13 @@ function EducationCard({
         <div className="flex-1 bg-card hover:bg-card-hover rounded-xl p-6 md:p-8 transition-all duration-300 border border-transparent hover:border-border hover:card-shadow group">
           <div className="flex items-center gap-4 mb-4">
             {school.logo && (
-              <div className="relative w-12 h-12 flex-shrink-0 bg-white rounded-xl overflow-hidden p-1.5">
+              <div className="flex-shrink-0 w-12 h-12 bg-white">
                 <Image
                   src={school.logo}
                   alt={`${school.name} logo`}
-                  fill
-                  className="object-contain"
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-contain"
                 />
               </div>
             )}
