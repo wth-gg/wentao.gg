@@ -4,11 +4,15 @@ import { useEffect, useState, useRef } from "react";
 
 export default function InteractiveEffects() {
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Set mounted on client
+  // Set mounted and detect mobile
   useEffect(() => {
     setMounted(true);
+    const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    const hasMouse = window.matchMedia("(pointer: fine)").matches;
+    setIsMobile(hasTouch && !hasMouse);
   }, []);
 
   // WebGL Fluid Simulation
@@ -27,13 +31,13 @@ export default function InteractiveEffects() {
             SIM_RESOLUTION: 512,
             DYE_RESOLUTION: 2048,
             CAPTURE_RESOLUTION: 256,
-            DENSITY_DISSIPATION: 4,
-            VELOCITY_DISSIPATION: 4,
+            DENSITY_DISSIPATION: 2,
+            VELOCITY_DISSIPATION: 2.5,
             PRESSURE: 0.4,
             PRESSURE_ITERATIONS: 45,
             CURL: 20,
-            SPLAT_RADIUS: 0.05,
-            SPLAT_FORCE: 5000,
+            SPLAT_RADIUS: 0.075,
+            SPLAT_FORCE: 6000,
             SHADING: true,
             COLORFUL: true,
             COLOR_UPDATE_SPEED: 25,
@@ -60,7 +64,7 @@ export default function InteractiveEffects() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-10"
+      className={`fixed inset-0 z-10 ${isMobile ? "pointer-events-none" : ""}`}
       style={{ width: "100vw", height: "100vh" }}
     />
   );
