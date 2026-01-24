@@ -59,6 +59,42 @@ export default function InteractiveEffects() {
     };
   }, [mounted]);
 
+  // Forward touch events to canvas on mobile (allows scroll + fluid effect)
+  useEffect(() => {
+    if (!mounted || !isMobile || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+
+    const forwardTouchEvent = (e: TouchEvent, type: string) => {
+      const touch = e.touches[0] || e.changedTouches[0];
+      if (!touch) return;
+
+      const pointerEvent = new PointerEvent(type, {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        pointerId: touch.identifier,
+        pointerType: "touch",
+        isPrimary: true,
+        bubbles: true,
+      });
+      canvas.dispatchEvent(pointerEvent);
+    };
+
+    const handleTouchStart = (e: TouchEvent) => forwardTouchEvent(e, "pointerdown");
+    const handleTouchMove = (e: TouchEvent) => forwardTouchEvent(e, "pointermove");
+    const handleTouchEnd = (e: TouchEvent) => forwardTouchEvent(e, "pointerup");
+
+    document.addEventListener("touchstart", handleTouchStart, { passive: true });
+    document.addEventListener("touchmove", handleTouchMove, { passive: true });
+    document.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    return () => {
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [mounted, isMobile]);
+
   if (!mounted) return null;
 
   return (
