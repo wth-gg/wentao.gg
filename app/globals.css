@@ -172,6 +172,26 @@ button:active, .btn:active {
   animation-delay: 2s;
 }
 
+/* Breathing glow animation */
+@keyframes breathe {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 40px rgba(59, 130, 246, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.25), 0 0 50px rgba(59, 130, 246, 0.1);
+  }
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* Staggered breathing for multiple elements */
+.animate-breathe:nth-child(1) { animation-delay: 0s; }
+.animate-breathe:nth-child(2) { animation-delay: 1s; }
+.animate-breathe:nth-child(3) { animation-delay: 2s; }
+.animate-breathe:nth-child(4) { animation-delay: 3s; }
+
 /* Fade in up animation */
 @keyframes fadeInUp {
   from {

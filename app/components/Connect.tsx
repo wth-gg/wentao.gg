@@ -64,9 +64,13 @@ export default function Connect() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -4, scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="group bg-white/5 backdrop-blur-lg hover:bg-white/10 rounded-xl p-5 border border-white/10 hover:border-white/20 hover:card-shadow transition-all duration-300 pointer-events-auto"
+              whileHover={{
+                y: -8,
+                scale: 1.15,
+                transition: { type: "spring", stiffness: 700, damping: 12 }
+              }}
+              whileTap={{ scale: 0.92, transition: { type: "spring", stiffness: 800, damping: 15 } }}
+              className="group bg-white/5 backdrop-blur-lg hover:bg-white/10 rounded-xl p-5 border border-white/10 hover:border-white/20 hover:card-shadow transition-colors duration-150 pointer-events-auto animate-breathe"
               aria-label={link.name}
             >
               <div className="flex items-center justify-center w-12 h-12 bg-background rounded-xl group-hover:bg-accent/10 transition-colors">
