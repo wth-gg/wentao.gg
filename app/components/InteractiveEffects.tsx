@@ -159,9 +159,9 @@ export default function InteractiveEffects() {
       {/* Mobile: Tilt-based ambient gradient */}
       {mounted && isMobile && (
         <motion.div
-          className="pointer-events-none fixed inset-0 z-30 opacity-30"
+          className="pointer-events-none fixed inset-0 z-30"
           animate={{
-            background: `radial-gradient(circle at ${50 + tilt.x * 30}% ${50 + tilt.y * 30}%, rgba(59, 130, 246, 0.2), transparent 50%)`,
+            background: `radial-gradient(circle at ${50 + tilt.x * 30}% ${50 + tilt.y * 30}%, rgba(59, 130, 246, 0.35), transparent 50%)`,
           }}
           transition={{ type: "tween", duration: 0.1 }}
         />
