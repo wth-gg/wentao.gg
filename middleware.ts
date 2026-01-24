@@ -11,6 +11,32 @@ const countryEmojis: Record<string, string> = {
   PH: "🇵🇭", ID: "🇮🇩", MY: "🇲🇾", ZA: "🇿🇦", AE: "🇦🇪", IL: "🇮🇱", TR: "🇹🇷",
 };
 
+// US state codes to names
+const usStates: Record<string, string> = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+  CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+  HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
+  KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri",
+  MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
+  NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio",
+  OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+  SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont",
+  VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
+  DC: "Washington D.C.",
+};
+
+// Country codes to names for non-US
+const countryNames: Record<string, string> = {
+  CA: "Canada", GB: "United Kingdom", DE: "Germany", FR: "France", JP: "Japan", CN: "China",
+  KR: "South Korea", AU: "Australia", BR: "Brazil", IN: "India", MX: "Mexico", ES: "Spain",
+  IT: "Italy", NL: "Netherlands", SE: "Sweden", NO: "Norway", DK: "Denmark", FI: "Finland",
+  PL: "Poland", RU: "Russia", SG: "Singapore", HK: "Hong Kong", TW: "Taiwan", NZ: "New Zealand",
+  IE: "Ireland", CH: "Switzerland", AT: "Austria", BE: "Belgium", PT: "Portugal",
+  AR: "Argentina", CL: "Chile", CO: "Colombia", TH: "Thailand", VN: "Vietnam",
+  PH: "Philippines", ID: "Indonesia", MY: "Malaysia", ZA: "South Africa", AE: "UAE", IL: "Israel", TR: "Turkey",
+};
+
 // Time-based greetings with emojis
 function getTimeGreeting(hour: number): string {
   if (hour >= 5 && hour < 9) return "Rise and shine ☀️";
@@ -26,7 +52,10 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Get geolocation data from Vercel headers (city may be URL-encoded)
+  // Note: IP geolocation has inherent accuracy limitations - ISPs often register
+  // IPs to data centers rather than actual user locations
   const country = request.headers.get("x-vercel-ip-country") || "";
+  const region = request.headers.get("x-vercel-ip-country-region") || "";
   const rawCity = request.headers.get("x-vercel-ip-city") || "";
   const city = rawCity ? decodeURIComponent(rawCity) : "";
   const timezone = request.headers.get("x-vercel-ip-timezone") || "America/New_York";
@@ -54,16 +83,39 @@ export function middleware(request: NextRequest) {
   const timeGreeting = getTimeGreeting(hour);
   const countryEmoji = countryEmojis[country] || "";
 
+  // Build location string based on available data
+  let locationString = "";
+
+  if (country === "US") {
+    // For US: "City, State" or just "State" if city unavailable
+    const stateName = usStates[region] || region;
+    if (city && stateName) {
+      locationString = `${city}, ${region}`; // e.g., "Mountain View, CA"
+    } else if (stateName) {
+      locationString = stateName; // e.g., "California"
+    }
+  } else if (country) {
+    // For international: "City, Country" or just "Country"
+    const countryName = countryNames[country] || country;
+    if (city) {
+      locationString = `${city}, ${countryName}`; // e.g., "Toronto, Canada"
+    } else if (region && countryName) {
+      locationString = `${region}, ${countryName}`; // e.g., "Ontario, Canada"
+    } else {
+      locationString = countryName; // e.g., "Canada"
+    }
+  }
+
   let locationPart = "";
-  if (city && countryEmoji) {
-    locationPart = `, visitor from ${city} ${countryEmoji}`;
-  } else if (city) {
-    locationPart = `, visitor from ${city}`;
+  if (locationString && countryEmoji) {
+    locationPart = `, visitor from ${locationString} ${countryEmoji}`;
+  } else if (locationString) {
+    locationPart = `, visitor from ${locationString}`;
   } else if (countryEmoji) {
     locationPart = ` from ${countryEmoji}`;
   }
 
-  const greeting = (city || country) ? `${timeGreeting}${locationPart}` : "Hey there 👋";
+  const greeting = (locationString || country) ? `${timeGreeting}${locationPart}` : "Hey there 👋";
 
   // Set cookie for client to read
   response.cookies.set("visitor-greeting", greeting, {
