@@ -1,174 +1,67 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { motion, useMotionValue, useSpring, useMotionTemplate, AnimatePresence } from "framer-motion";
-
-interface Ripple {
-  id: number;
-  x: number;
-  y: number;
-}
+import { useEffect, useState, useRef } from "react";
 
 export default function InteractiveEffects() {
-  const [isMobile, setIsMobile] = useState(true); // Default to mobile to avoid flash
   const [mounted, setMounted] = useState(false);
-  const [ripples, setRipples] = useState<Ripple[]>([]);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Cursor position with spring physics
-  const cursorX = useMotionValue(0);
-  const cursorY = useMotionValue(0);
-  const springX = useSpring(cursorX, { stiffness: 500, damping: 40 });
-  const springY = useSpring(cursorY, { stiffness: 500, damping: 40 });
-
-  // Create animated gradient background using motion template
-  const cursorGradient = useMotionTemplate`radial-gradient(600px circle at ${springX}px ${springY}px, rgba(59, 130, 246, 0.15), transparent 40%)`;
-
-  // Detect mobile and set mounted
+  // Set mounted on client
   useEffect(() => {
     setMounted(true);
-    const checkMobile = () => {
-      // Check for touch capability AND no fine pointer (mouse)
-      const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-      const hasMouse = window.matchMedia("(pointer: fine)").matches;
-      setIsMobile(hasTouch && !hasMouse);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Desktop: Cursor glow
+  // WebGL Fluid Simulation
   useEffect(() => {
-    if (isMobile || !mounted) return;
+    if (!mounted || !canvasRef.current) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
-    };
+    let fluidInstance: any = null;
 
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [isMobile, mounted, cursorX, cursorY]);
-
-  // Mobile: Touch ripple
-  const handleTouch = useCallback((e: TouchEvent) => {
-    const touch = e.touches[0];
-    if (!touch) return;
-
-    const newRipple: Ripple = {
-      id: Date.now(),
-      x: touch.clientX,
-      y: touch.clientY,
-    };
-
-    setRipples((prev) => [...prev, newRipple]);
-
-    // Remove ripple after animation
-    setTimeout(() => {
-      setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-    }, 600);
-  }, []);
-
-  useEffect(() => {
-    if (!isMobile) return;
-
-    window.addEventListener("touchstart", handleTouch);
-    return () => window.removeEventListener("touchstart", handleTouch);
-  }, [isMobile, handleTouch]);
-
-  // Mobile: Device tilt parallax
-  useEffect(() => {
-    if (!isMobile || !mounted) return;
-
-    const handleOrientation = (e: DeviceOrientationEvent) => {
-      const x = e.gamma ? Math.min(Math.max(e.gamma, -30), 30) / 30 : 0; // Left/right tilt
-      const y = e.beta ? Math.min(Math.max(e.beta - 45, -30), 30) / 30 : 0; // Front/back tilt
-      setTilt({ x, y });
-    };
-
-    // Request permission for iOS 13+
-    if (typeof (DeviceOrientationEvent as any).requestPermission === "function") {
-      // Permission needs to be requested on user interaction
-      const requestPermission = async () => {
-        try {
-          const permission = await (DeviceOrientationEvent as any).requestPermission();
-          if (permission === "granted") {
-            window.addEventListener("deviceorientation", handleOrientation);
-          }
-        } catch (error) {
-          // Permission denied or error
+    const initFluid = async () => {
+      try {
+        const WebGLFluid = (await import("webgl-fluid")).default;
+        if (canvasRef.current) {
+          fluidInstance = WebGLFluid(canvasRef.current, {
+            IMMEDIATE: false,
+            TRIGGER: "hover",
+            SIM_RESOLUTION: 512,
+            DYE_RESOLUTION: 2048,
+            CAPTURE_RESOLUTION: 256,
+            DENSITY_DISSIPATION: 4,
+            VELOCITY_DISSIPATION: 4,
+            PRESSURE: 0.4,
+            PRESSURE_ITERATIONS: 45,
+            CURL: 20,
+            SPLAT_RADIUS: 0.05,
+            SPLAT_FORCE: 5000,
+            SHADING: true,
+            COLORFUL: true,
+            COLOR_UPDATE_SPEED: 25,
+            PAUSED: false,
+            BACK_COLOR: { r: 0, g: 0, b: 0 },
+            TRANSPARENT: true,
+            BLOOM: false,
+          });
         }
-      };
+      } catch (error) {
+        console.error("Failed to initialize WebGL Fluid:", error);
+      }
+    };
 
-      // Add click listener to request permission (stays until permission granted)
-      const handleClick = () => {
-        requestPermission();
-      };
-      document.addEventListener("click", handleClick, { once: true });
+    initFluid();
 
-      return () => {
-        document.removeEventListener("click", handleClick);
-        window.removeEventListener("deviceorientation", handleOrientation);
-      };
-    } else {
-      // Android and other devices - just add the listener
-      window.addEventListener("deviceorientation", handleOrientation);
-      return () => window.removeEventListener("deviceorientation", handleOrientation);
-    }
-  }, [isMobile, mounted]);
+    return () => {
+      fluidInstance = null;
+    };
+  }, [mounted]);
+
+  if (!mounted) return null;
 
   return (
-    <>
-      {/* Desktop: Cursor glow */}
-      {mounted && !isMobile && (
-        <motion.div
-          className="pointer-events-none fixed inset-0 z-30"
-          style={{
-            background: cursorGradient,
-          }}
-        />
-      )}
-
-      {/* Mobile: Touch ripples - elegant concentric rings */}
-      <AnimatePresence>
-        {ripples.map((ripple) => (
-          <div key={ripple.id} className="pointer-events-none fixed z-50" style={{ left: ripple.x, top: ripple.y }}>
-            {/* Outer ring */}
-            <motion.div
-              className="absolute rounded-full border border-accent/60"
-              initial={{ width: 0, height: 0, x: 0, y: 0, opacity: 0.6 }}
-              animate={{ width: 180, height: 180, x: -90, y: -90, opacity: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            />
-            {/* Middle ring */}
-            <motion.div
-              className="absolute rounded-full border-2 border-accent/40"
-              initial={{ width: 0, height: 0, x: 0, y: 0, opacity: 0.8 }}
-              animate={{ width: 120, height: 120, x: -60, y: -60, opacity: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut", delay: 0.05 }}
-            />
-            {/* Inner glow */}
-            <motion.div
-              className="absolute rounded-full bg-accent/30"
-              initial={{ width: 0, height: 0, x: 0, y: 0, opacity: 1 }}
-              animate={{ width: 60, height: 60, x: -30, y: -30, opacity: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: 0.02 }}
-            />
-          </div>
-        ))}
-      </AnimatePresence>
-
-      {/* Mobile: Tilt-based ambient gradient */}
-      {mounted && isMobile && (
-        <motion.div
-          className="pointer-events-none fixed inset-0 z-30"
-          animate={{
-            background: `radial-gradient(600px circle at ${50 + tilt.x * 40}% ${50 + tilt.y * 40}%, rgba(59, 130, 246, 0.25), transparent 60%)`,
-          }}
-          transition={{ type: "tween", duration: 0.15 }}
-        />
-      )}
-    </>
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 z-10"
+      style={{ width: "100vw", height: "100vh" }}
+    />
   );
 }
