@@ -34,8 +34,18 @@ export function middleware(request: NextRequest) {
   // Calculate local hour based on timezone
   let hour = new Date().getUTCHours();
   try {
-    const localTime = new Date().toLocaleString("en-US", { timeZone: timezone, hour: "numeric", hour12: false });
-    hour = parseInt(localTime) || hour;
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      hour: "numeric",
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(new Date());
+    const hourPart = parts.find(p => p.type === "hour");
+    if (hourPart) {
+      hour = parseInt(hourPart.value, 10);
+      // Handle midnight (some locales return 24)
+      if (hour === 24) hour = 0;
+    }
   } catch {
     // Fallback to UTC if timezone is invalid
   }
@@ -43,8 +53,17 @@ export function middleware(request: NextRequest) {
   // Build greeting
   const timeGreeting = getTimeGreeting(hour);
   const countryEmoji = countryEmojis[country] || "";
-  const locationPart = city ? `, visitor from ${city} ${countryEmoji}`.trim() : country ? ` ${countryEmoji}`.trim() : "";
-  const greeting = locationPart ? `${timeGreeting}${locationPart}` : "Hey there 👋";
+
+  let locationPart = "";
+  if (city && countryEmoji) {
+    locationPart = `, visitor from ${city} ${countryEmoji}`;
+  } else if (city) {
+    locationPart = `, visitor from ${city}`;
+  } else if (countryEmoji) {
+    locationPart = ` from ${countryEmoji}`;
+  }
+
+  const greeting = (city || country) ? `${timeGreeting}${locationPart}` : "Hey there 👋";
 
   // Set cookie for client to read
   response.cookies.set("visitor-greeting", greeting, {
