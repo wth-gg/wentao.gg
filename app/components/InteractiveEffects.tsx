@@ -18,8 +18,8 @@ export default function InteractiveEffects() {
   // Cursor position with spring physics
   const cursorX = useMotionValue(0);
   const cursorY = useMotionValue(0);
-  const springX = useSpring(cursorX, { stiffness: 100, damping: 20 });
-  const springY = useSpring(cursorY, { stiffness: 100, damping: 20 });
+  const springX = useSpring(cursorX, { stiffness: 500, damping: 40 });
+  const springY = useSpring(cursorY, { stiffness: 500, damping: 40 });
 
   // Create animated gradient background using motion template
   const cursorGradient = useMotionTemplate`radial-gradient(600px circle at ${springX}px ${springY}px, rgba(59, 130, 246, 0.15), transparent 40%)`;
@@ -135,23 +135,23 @@ export default function InteractiveEffects() {
         {ripples.map((ripple) => (
           <motion.div
             key={ripple.id}
-            className="pointer-events-none fixed z-50 rounded-full bg-accent/20"
+            className="pointer-events-none fixed z-50 rounded-full bg-accent/40 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
             initial={{
               width: 0,
               height: 0,
               x: ripple.x,
               y: ripple.y,
-              opacity: 0.5
+              opacity: 0.8
             }}
             animate={{
-              width: 150,
-              height: 150,
-              x: ripple.x - 75,
-              y: ripple.y - 75,
+              width: 200,
+              height: 200,
+              x: ripple.x - 100,
+              y: ripple.y - 100,
               opacity: 0
             }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
           />
         ))}
       </AnimatePresence>
