@@ -158,7 +158,7 @@ export default function Hero() {
   const textSections: TextSection[] = [
     {
       text: "Wentao",
-      className: "block text-5xl md:text-7xl font-bold tracking-[-0.04em] text-foreground mb-4",
+      className: "block text-5xl md:text-7xl font-bold tracking-[-0.04em] text-foreground mb-4 text-shimmer",
     },
     {
       text: "⚙️ Engineer + 💻 Developer",
