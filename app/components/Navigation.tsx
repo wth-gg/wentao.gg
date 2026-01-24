@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, Dumbbell } from "lucide-react";
+import { Menu, X, ChevronDown, Dumbbell, Video } from "lucide-react";
 import Link from "next/link";
 
 const navItems = [
@@ -19,6 +19,13 @@ const projectItems = [
     href: "/projects/poweropps",
     description: "Powerlifting index calculator",
     icon: Dumbbell,
+  },
+  {
+    name: "What's my RPE?",
+    href: "#projects",
+    description: "Velocity-based RPE predictor (Coming Soon)",
+    icon: Video,
+    comingSoon: true,
   },
 ];
 
@@ -127,20 +134,35 @@ export default function Navigation() {
                             </a>
                             <div className="h-px bg-border my-1" />
                             {projectItems.map((project) => (
-                              <Link
-                                key={project.name}
-                                href={project.href}
-                                className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-background transition-colors group"
-                                onClick={() => setIsProjectsOpen(false)}
-                              >
-                                <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
-                                  <project.icon size={18} className="text-accent" />
+                              project.comingSoon ? (
+                                <div
+                                  key={project.name}
+                                  className="flex items-center gap-3 px-3 py-3 rounded-lg opacity-60 cursor-default"
+                                >
+                                  <div className="p-2 bg-muted/10 rounded-lg">
+                                    <project.icon size={18} className="text-muted" />
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-muted">{project.name}</div>
+                                    <div className="text-xs text-muted">{project.description}</div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <div className="text-sm font-medium text-foreground">{project.name}</div>
-                                  <div className="text-xs text-muted">{project.description}</div>
-                                </div>
-                              </Link>
+                              ) : (
+                                <Link
+                                  key={project.name}
+                                  href={project.href}
+                                  className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-background transition-colors group"
+                                  onClick={() => setIsProjectsOpen(false)}
+                                >
+                                  <div className="p-2 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
+                                    <project.icon size={18} className="text-accent" />
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-foreground">{project.name}</div>
+                                    <div className="text-xs text-muted">{project.description}</div>
+                                  </div>
+                                </Link>
+                              )
                             ))}
                           </div>
                         </motion.div>
@@ -221,23 +243,38 @@ export default function Navigation() {
                             View All Projects
                           </a>
                           {projectItems.map((project) => (
-                            <Link
-                              key={project.name}
-                              href={project.href}
-                              className="flex items-center gap-3 px-4 py-3 bg-card rounded-xl border border-border"
-                              onClick={() => {
-                                setMobileProjectsOpen(false);
-                                setIsMobileMenuOpen(false);
-                              }}
-                            >
-                              <div className="p-2 bg-accent/10 rounded-lg">
-                                <project.icon size={20} className="text-accent" />
+                            project.comingSoon ? (
+                              <div
+                                key={project.name}
+                                className="flex items-center gap-3 px-4 py-3 bg-card/50 rounded-xl border border-border opacity-60"
+                              >
+                                <div className="p-2 bg-muted/10 rounded-lg">
+                                  <project.icon size={20} className="text-muted" />
+                                </div>
+                                <div>
+                                  <div className="font-medium text-muted">{project.name}</div>
+                                  <div className="text-xs text-muted">{project.description}</div>
+                                </div>
                               </div>
-                              <div>
-                                <div className="font-medium text-foreground">{project.name}</div>
-                                <div className="text-xs text-muted">{project.description}</div>
-                              </div>
-                            </Link>
+                            ) : (
+                              <Link
+                                key={project.name}
+                                href={project.href}
+                                className="flex items-center gap-3 px-4 py-3 bg-card rounded-xl border border-border"
+                                onClick={() => {
+                                  setMobileProjectsOpen(false);
+                                  setIsMobileMenuOpen(false);
+                                }}
+                              >
+                                <div className="p-2 bg-accent/10 rounded-lg">
+                                  <project.icon size={20} className="text-accent" />
+                                </div>
+                                <div>
+                                  <div className="font-medium text-foreground">{project.name}</div>
+                                  <div className="text-xs text-muted">{project.description}</div>
+                                </div>
+                              </Link>
+                            )
                           ))}
                         </motion.div>
                       )}

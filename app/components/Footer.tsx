@@ -23,7 +23,7 @@ export default function Footer() {
               <Linkedin size={18} />
             </a>
             <a
-              href="https://github.com/yourusername"
+              href="https://github.com/wth-gg"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted hover:text-foreground transition-colors"
