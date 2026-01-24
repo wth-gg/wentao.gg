@@ -37,15 +37,15 @@ const countryNames: Record<string, string> = {
   PH: "Philippines", ID: "Indonesia", MY: "Malaysia", ZA: "South Africa", AE: "UAE", IL: "Israel", TR: "Turkey",
 };
 
-// Time-based greetings with emojis
-function getTimeGreeting(hour: number): string {
-  if (hour >= 5 && hour < 9) return "Rise and shine ☀️";
-  if (hour >= 9 && hour < 12) return "Good morning ☕";
-  if (hour >= 12 && hour < 14) return "Hope you're having a great day 🌤️";
-  if (hour >= 14 && hour < 17) return "Happy afternoon 🌞";
-  if (hour >= 17 && hour < 21) return "Good evening ✨";
-  if (hour >= 21 && hour < 24) return "Burning the midnight oil 🦉";
-  return "Up late huh 🌙";
+// Time period detection
+function getTimePeriod(hour: number): string {
+  if (hour >= 5 && hour < 9) return "early_morning";
+  if (hour >= 9 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 14) return "midday";
+  if (hour >= 14 && hour < 17) return "afternoon";
+  if (hour >= 17 && hour < 21) return "evening";
+  if (hour >= 21 && hour < 24) return "night";
+  return "late_night";
 }
 
 export function middleware(request: NextRequest) {
@@ -79,46 +79,40 @@ export function middleware(request: NextRequest) {
     // Fallback to UTC if timezone is invalid
   }
 
-  // Build greeting
-  const timeGreeting = getTimeGreeting(hour);
+  // Build location data
+  const timePeriod = getTimePeriod(hour);
   const countryEmoji = countryEmojis[country] || "";
+  const countryName = country === "US" ? "USA" : (countryNames[country] || country);
 
-  // Build location string based on available data
-  let locationString = "";
+  // Build granular location string: City, State/Region, Country + Flag
+  const locationParts: string[] = [];
 
-  if (country === "US") {
-    // For US: "City, State" or just "State" if city unavailable
-    const stateName = usStates[region] || region;
-    if (city && stateName) {
-      locationString = `${city}, ${region}`; // e.g., "Mountain View, CA"
-    } else if (stateName) {
-      locationString = stateName; // e.g., "California"
-    }
-  } else if (country) {
-    // For international: "City, Country" or just "Country"
-    const countryName = countryNames[country] || country;
-    if (city) {
-      locationString = `${city}, ${countryName}`; // e.g., "Toronto, Canada"
-    } else if (region && countryName) {
-      locationString = `${region}, ${countryName}`; // e.g., "Ontario, Canada"
-    } else {
-      locationString = countryName; // e.g., "Canada"
-    }
+  if (city) {
+    locationParts.push(city);
   }
 
-  let locationPart = "";
-  if (locationString && countryEmoji) {
-    locationPart = `, visitor from ${locationString} ${countryEmoji}`;
-  } else if (locationString) {
-    locationPart = `, visitor from ${locationString}`;
-  } else if (countryEmoji) {
-    locationPart = ` from ${countryEmoji}`;
+  if (region) {
+    locationParts.push(region);
   }
 
-  const greeting = (locationString || country) ? `${timeGreeting}${locationPart}` : "Hey there 👋";
+  if (countryName) {
+    locationParts.push(countryName);
+  }
+
+  // Join location parts with commas and add flag
+  let locationString = locationParts.join(", ");
+  if (countryEmoji) {
+    locationString = locationString ? `${locationString} ${countryEmoji}` : countryEmoji;
+  }
+
+  // Send structured data as JSON for client-side greeting generation
+  const greetingData = JSON.stringify({
+    timePeriod,
+    location: locationString,
+  });
 
   // Set cookie for client to read
-  response.cookies.set("visitor-greeting", greeting, {
+  response.cookies.set("visitor-greeting-data", greetingData, {
     maxAge: 60 * 60, // 1 hour
     path: "/",
   });

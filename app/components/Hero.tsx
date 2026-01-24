@@ -1,12 +1,134 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDown } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 interface TextSection {
   text: string;
   className: string;
+}
+
+// Playful greetings for each time period
+const greetingsByPeriod: Record<string, string[]> = {
+  early_morning: [
+    "Rise and shine ☀️",
+    "Early bird gets the worm 🐦",
+    "Up with the sun 🌅",
+    "Morning hustle activated 💪",
+  ],
+  morning: [
+    "Good morning ☕",
+    "Hope your coffee is strong ☕",
+    "Ready to conquer the day? 🚀",
+    "Morning vibes ✨",
+  ],
+  midday: [
+    "Hope you're having a great day 🌤️",
+    "Lunch break browsing? 🍕",
+    "Halfway through the day 💫",
+    "Midday momentum 🎯",
+  ],
+  afternoon: [
+    "Happy afternoon 🌞",
+    "Afternoon productivity mode 💻",
+    "Making the most of the day ⚡",
+    "Cruising through the afternoon 🛹",
+  ],
+  evening: [
+    "Good evening ✨",
+    "Winding down? 🌆",
+    "Evening explorations 🔍",
+    "Golden hour greetings 🌅",
+  ],
+  night: [
+    "Burning the midnight oil 🦉",
+    "Night owl mode activated 🌙",
+    "Late night coding? 💻",
+    "Stars are out ⭐",
+  ],
+  late_night: [
+    "Up late, huh? 🌙",
+    "Can't sleep? Same 😅",
+    "The internet never sleeps 🌐",
+    "Late night adventures 🚀",
+  ],
+};
+
+const defaultGreetings = ["Hey there 👋", "Welcome 👋", "Hello 👋"];
+
+function RotatingGreeting({
+  greetings,
+  location,
+  typingSpeed = 50,
+  displayDuration = 3000,
+}: {
+  greetings: string[];
+  location: string;
+  typingSpeed?: number;
+  displayDuration?: number;
+}) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [displayedText, setDisplayedText] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+  const [showCursor, setShowCursor] = useState(true);
+
+  const currentGreeting = greetings[currentIndex];
+  const fullText = location
+    ? `${currentGreeting}, visitor from ${location}! I'm`
+    : `${currentGreeting}! I'm`;
+
+  // Typing effect
+  useEffect(() => {
+    if (!isTyping) return;
+
+    if (displayedText.length < fullText.length) {
+      const timeout = setTimeout(() => {
+        setDisplayedText(fullText.slice(0, displayedText.length + 1));
+      }, typingSpeed);
+      return () => clearTimeout(timeout);
+    } else {
+      setIsTyping(false);
+      // Wait then move to next greeting
+      const timeout = setTimeout(() => {
+        setDisplayedText("");
+        setCurrentIndex((prev) => (prev + 1) % greetings.length);
+        setIsTyping(true);
+      }, displayDuration);
+      return () => clearTimeout(timeout);
+    }
+  }, [displayedText, fullText, isTyping, typingSpeed, displayDuration, greetings.length]);
+
+  // Reset when greeting changes
+  useEffect(() => {
+    setDisplayedText("");
+    setIsTyping(true);
+  }, [currentIndex]);
+
+  // Blinking cursor
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowCursor((prev) => !prev);
+    }, 530);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span className="text-accent text-sm font-medium tracking-wide">
+      {displayedText}
+      <span
+        className={`inline-block bg-accent align-baseline transition-opacity ${
+          showCursor ? "opacity-100" : "opacity-0"
+        }`}
+        style={{
+          width: "0.5em",
+          height: "1em",
+          marginLeft: "1px",
+          verticalAlign: "text-bottom",
+        }}
+      />
+    </span>
+  );
 }
 
 function TypeWriter({
@@ -128,32 +250,43 @@ function TypeWriter({
   );
 }
 
-function getGreeting(): string {
-  if (typeof document === "undefined") return "Hey there 👋 I'm";
-  const match = document.cookie.match(/visitor-greeting=([^;]+)/);
+interface GreetingData {
+  timePeriod: string;
+  location: string;
+}
+
+function getGreetingData(): GreetingData {
+  if (typeof document === "undefined") {
+    return { timePeriod: "morning", location: "" };
+  }
+
+  const match = document.cookie.match(/visitor-greeting-data=([^;]+)/);
   if (match) {
     try {
-      // Decode URI component (cookies are URL-encoded)
-      let greeting = decodeURIComponent(match[1]);
-      // Handle case where it might be double-encoded
-      if (greeting.includes("%")) {
-        greeting = decodeURIComponent(greeting);
+      let data = decodeURIComponent(match[1]);
+      // Handle double-encoding
+      if (data.includes("%")) {
+        data = decodeURIComponent(data);
       }
-      return `${greeting}! I'm`;
+      return JSON.parse(data);
     } catch {
-      return "Hey there 👋 I'm";
+      return { timePeriod: "morning", location: "" };
     }
   }
-  return "Hey there 👋 I'm";
+  return { timePeriod: "morning", location: "" };
 }
 
 export default function Hero() {
   const [typingComplete, setTypingComplete] = useState(false);
-  const [greeting, setGreeting] = useState("Hey there 👋 I'm");
+  const [greetingData, setGreetingData] = useState<GreetingData>({ timePeriod: "morning", location: "" });
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setGreeting(getGreeting());
+    setMounted(true);
+    setGreetingData(getGreetingData());
   }, []);
+
+  const greetings = greetingsByPeriod[greetingData.timePeriod] || defaultGreetings;
 
   const textSections: TextSection[] = [
     {
@@ -182,14 +315,21 @@ export default function Hero() {
           transition={{ duration: 0.3, ease: "easeOut" }}
           className="space-y-6 relative z-20 pointer-events-none"
         >
-          <motion.p
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="text-accent text-sm font-medium tracking-wide"
+            className="h-6"
           >
-            {greeting}
-          </motion.p>
+            {mounted && (
+              <RotatingGreeting
+                greetings={greetings}
+                location={greetingData.location}
+                typingSpeed={40}
+                displayDuration={4000}
+              />
+            )}
+          </motion.div>
 
           <TypeWriter
             sections={textSections}
