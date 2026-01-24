@@ -105,7 +105,7 @@ function EducationCard({
         </div>
 
         {/* Card content */}
-        <div className="flex-1 bg-card hover:bg-card-hover rounded-xl p-6 md:p-8 transition-all duration-300 border border-transparent hover:border-border hover:card-shadow group">
+        <div className="flex-1 bg-white/5 backdrop-blur-lg hover:bg-white/10 rounded-xl p-6 md:p-8 transition-all duration-300 border border-white/10 hover:border-white/20 hover:card-shadow group pointer-events-auto">
           <div className="flex items-center gap-4 mb-4">
             {school.logo && (
               <div className="flex-shrink-0 w-12 h-12 bg-white">
@@ -156,7 +156,7 @@ function EducationCard({
                     href={highlight.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1 text-xs font-medium bg-muted/20 text-foreground rounded-full hover:bg-muted/30 transition-colors"
+                    className="px-3 py-1 text-xs font-medium bg-muted/20 text-foreground rounded-full hover:bg-muted/30 transition-colors pointer-events-auto"
                   >
                     {highlight.text}
                   </a>
@@ -179,7 +179,7 @@ function EducationCard({
 
 export default function Education() {
   return (
-    <section id="education" className="py-24 px-6">
+    <section id="education" className="py-24 px-6 relative z-20 pointer-events-none">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 40 }}

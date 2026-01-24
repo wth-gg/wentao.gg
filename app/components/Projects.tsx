@@ -41,7 +41,7 @@ const itemVariants = {
 
 export default function Projects() {
   return (
-    <section id="projects" className="py-24 px-6">
+    <section id="projects" className="py-24 px-6 relative z-20 pointer-events-none">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -110,13 +110,13 @@ export default function Projects() {
                 transition={{ duration: 0.5 }}
               >
                 {project.comingSoon ? (
-                  <div className="group block bg-card rounded-xl overflow-hidden border border-transparent hover:border-border hover:card-shadow transition-all duration-300 h-full cursor-default">
+                  <div className="group block bg-white/5 backdrop-blur-lg rounded-xl overflow-hidden border border-white/10 hover:border-white/20 hover:card-shadow transition-all duration-300 h-full cursor-default pointer-events-auto">
                     {CardContent}
                   </div>
                 ) : (
                   <Link
                     href={project.href}
-                    className="group block bg-card rounded-xl overflow-hidden border border-transparent hover:border-border hover:card-shadow card-lift transition-all duration-300 h-full"
+                    className="group block bg-white/5 backdrop-blur-lg rounded-xl overflow-hidden border border-white/10 hover:border-white/20 hover:card-shadow card-lift transition-all duration-300 h-full pointer-events-auto"
                   >
                     {CardContent}
                   </Link>

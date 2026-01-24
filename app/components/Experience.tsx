@@ -110,7 +110,7 @@ function ExperienceCard({
         </div>
 
         {/* Card content */}
-        <div className="flex-1 bg-card hover:bg-card-hover rounded-xl p-6 md:p-8 transition-all duration-300 border border-transparent hover:border-border hover:card-shadow group">
+        <div className="flex-1 bg-white/5 backdrop-blur-lg hover:bg-white/10 rounded-xl p-6 md:p-8 transition-all duration-300 border border-white/10 hover:border-white/20 hover:card-shadow group pointer-events-auto">
           <div className="flex items-center gap-4 mb-4">
             {experience.logo && (
               <div className="flex-shrink-0 w-12 h-12 bg-white">
@@ -170,7 +170,7 @@ export default function Experience() {
   const containerRef = useRef(null);
 
   return (
-    <section id="experience" className="py-24 px-6 bg-card/30">
+    <section id="experience" className="py-24 px-6 relative z-20 pointer-events-none">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 40 }}

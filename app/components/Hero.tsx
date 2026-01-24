@@ -180,7 +180,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="space-y-6"
+          className="space-y-6 relative z-20 pointer-events-none"
         >
           <motion.p
             initial={{ opacity: 0 }}
@@ -202,11 +202,11 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: typingComplete ? 1 : 0, y: typingComplete ? 0 : 20 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex gap-4 pt-4 relative z-20"
+            className="flex gap-4 pt-4"
           >
             <a
               href="#connect"
-              className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors"
+              className="px-6 py-3 bg-accent hover:bg-accent-hover text-white font-medium rounded-lg transition-colors pointer-events-auto"
             >
               Get in touch
             </a>
@@ -217,7 +217,7 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2, duration: 0.5 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 pointer-events-auto"
         >
           <motion.a
             href="#projects"

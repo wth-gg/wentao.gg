@@ -107,14 +107,14 @@ export default function SiteStats() {
   }
 
   return (
-    <section className="py-16 px-6">
+    <section className="py-16 px-6 relative z-20 pointer-events-none">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="bg-card rounded-2xl border border-border p-6 sm:p-8"
+          className="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6 sm:p-8 pointer-events-auto"
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">

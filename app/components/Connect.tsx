@@ -28,7 +28,7 @@ const socialLinks = [
 
 export default function Connect() {
   return (
-    <section id="connect" className="py-24 px-6 bg-card/30">
+    <section id="connect" className="py-24 px-6 relative z-20 pointer-events-none">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -66,7 +66,7 @@ export default function Connect() {
               transition={{ delay: index * 0.1 }}
               whileHover={{ y: -4, scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="group bg-card hover:bg-card-hover rounded-xl p-5 border border-transparent hover:border-border hover:card-shadow transition-all duration-300"
+              className="group bg-white/5 backdrop-blur-lg hover:bg-white/10 rounded-xl p-5 border border-white/10 hover:border-white/20 hover:card-shadow transition-all duration-300 pointer-events-auto"
               aria-label={link.name}
             >
               <div className="flex items-center justify-center w-12 h-12 bg-background rounded-xl group-hover:bg-accent/10 transition-colors">
