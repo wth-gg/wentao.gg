@@ -1,4 +1,5 @@
 import Navigation from "./components/Navigation";
+import ScrollProgress from "./components/ScrollProgress";
 import Hero from "./components/Hero";
 import Education from "./components/Education";
 import Experience from "./components/Experience";
@@ -10,6 +11,7 @@ import Footer from "./components/Footer";
 export default function Home() {
   return (
     <>
+      <ScrollProgress />
       <Navigation />
       <main className="pb-20">
         <Hero />

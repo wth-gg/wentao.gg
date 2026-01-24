@@ -116,7 +116,7 @@ export default function Projects() {
                 ) : (
                   <Link
                     href={project.href}
-                    className="group block bg-card rounded-xl overflow-hidden border border-transparent hover:border-border hover:card-shadow transition-all duration-300 h-full"
+                    className="group block bg-card rounded-xl overflow-hidden border border-transparent hover:border-border hover:card-shadow card-lift transition-all duration-300 h-full"
                   >
                     {CardContent}
                   </Link>
