@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calculator, Target, RotateCcw } from "lucide-react";
+import { ArrowLeft, Calculator, Target, RotateCcw, Sword } from "lucide-react";
 import Link from "next/link";
 
 // Types
@@ -25,6 +25,16 @@ const LBS_TO_KG = 1 / 2.204623;
 
 // ============ SCORE CALCULATION FUNCTIONS ============
 // All coefficients sourced from PowerOPPS iOS app
+
+function calculateScore(bodyWeight: number, total: number, isFemale: boolean, scoreType: ScoreType, event: Event, category: Category): number {
+  if (scoreType === "dots") {
+    return calculateDOTS(bodyWeight, total, isFemale);
+  } else if (scoreType === "wilks2") {
+    return calculateNewWilks(bodyWeight, total, isFemale);
+  } else {
+    return calculateIPFGL(bodyWeight, total, isFemale, event, category);
+  }
+}
 
 function calculateOldWilks(bodyWeight: number, weightLifted: number, isFemale: boolean): number {
   const maleCoeff = [-216.0475144, 16.2606339, -0.002388645, -0.00113732, 7.01863e-6, -1.291e-8];
@@ -221,6 +231,22 @@ function SegmentButton({ options, value, onChange }: { options: { value: string;
   );
 }
 
+function ToggleSwitch({ checked, onChange, labelLeft, labelRight }: { checked: boolean; onChange: (v: boolean) => void; labelLeft: string; labelRight: string }) {
+  return (
+    <div className="flex items-center justify-center gap-3">
+      <span className={`text-sm ${!checked ? "text-foreground font-medium" : "text-muted"}`}>{labelLeft}</span>
+      <button
+        type="button"
+        onClick={() => onChange(!checked)}
+        className={`relative w-14 h-8 rounded-full transition-colors ${checked ? "bg-green-500" : "bg-red-500"}`}
+      >
+        <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${checked ? "translate-x-7" : "translate-x-1"}`} />
+      </button>
+      <span className={`text-sm ${checked ? "text-foreground font-medium" : "text-muted"}`}>{labelRight}</span>
+    </div>
+  );
+}
+
 function ScoreCard({ label, value, primary = false }: { label: string; value: string; primary?: boolean }) {
   return (
     <div className={`p-4 rounded-lg ${primary ? "bg-accent/10 border border-accent/20" : "bg-background"}`}>
@@ -252,7 +278,7 @@ function InputField({ label, value, onChange, placeholder, suffix }: { label: st
 // ============ MAIN COMPONENT ============
 
 export default function PowerOPPS() {
-  const [activeTab, setActiveTab] = useState<"scores" | "target">("scores");
+  const [activeTab, setActiveTab] = useState<"scores" | "target" | "opp">("scores");
 
   // Scores calculator state
   const [gender, setGender] = useState<Gender>("male");
@@ -274,6 +300,24 @@ export default function PowerOPPS() {
   const [scoreType, setScoreType] = useState<ScoreType>("dots");
   const [targetResult, setTargetResult] = useState<number | null>(null);
   const [targetError, setTargetError] = useState("");
+
+  // Opp calculator state
+  const [oppGender, setOppGender] = useState<Gender>("male");
+  const [oppUnit, setOppUnit] = useState<Unit>("kg");
+  const [oppEvent, setOppEvent] = useState<Event>("CL");
+  const [oppCategory, setOppCategory] = useState<Category>("PL");
+  const [oppScoreType, setOppScoreType] = useState<ScoreType>("dots");
+  const [oppBodyWeight, setOppBodyWeight] = useState("");
+  const [oppSubtotal, setOppSubtotal] = useState(""); // S+B for full meet
+  const [oppCurrentLift, setOppCurrentLift] = useState(""); // Current best DL or Bench
+  const [oppAttempt, setOppAttempt] = useState(""); // What they're attempting
+  const [oppHits, setOppHits] = useState(true); // Hit or miss toggle
+  const [myBodyWeight, setMyBodyWeight] = useState("");
+  const [mySubtotal, setMySubtotal] = useState(""); // My S+B for full meet
+  const [oppResult, setOppResult] = useState<{ oppScore: number; myLiftNeeded: number; oppTotal: number; margin: number; beatMode: "points" | "total" } | null>(null);
+  const [oppError, setOppError] = useState("");
+  const [beatMode, setBeatMode] = useState<"points" | "total">("points");
+  const [beatMargin, setBeatMargin] = useState("0.01");
 
   const handleCalculateScores = () => {
     setError("");
@@ -309,6 +353,105 @@ export default function PowerOPPS() {
     setTargetResult(calculateTargetWeight(bw, ts, scoreType, targetGender === "female", targetEvent, targetCategory, targetUnit === "kg"));
   };
 
+  const handleCalculateOpp = () => {
+    setOppError("");
+    setOppResult(null);
+
+    const isFullMeet = oppCategory === "PL";
+    const isKG = oppUnit === "kg";
+    const isFemale = oppGender === "female";
+
+    // Parse inputs
+    const oppBW = parseFloat(oppBodyWeight);
+    const oppSub = isFullMeet ? parseFloat(oppSubtotal) : 0;
+    const oppCurrent = parseFloat(oppCurrentLift);
+    const oppAtt = parseFloat(oppAttempt);
+    const myBW = parseFloat(myBodyWeight);
+    const mySub = isFullMeet ? parseFloat(mySubtotal) : 0;
+
+    // Validation
+    if (isNaN(oppBW) || oppBW <= 0) {
+      setOppError("Enter Opp's body weight");
+      return;
+    }
+    if (isFullMeet && (isNaN(oppSub) || oppSub < 0)) {
+      setOppError("Enter Opp's S+B subtotal");
+      return;
+    }
+    if (isNaN(oppCurrent) || oppCurrent < 0) {
+      setOppError("Enter Opp's current lift");
+      return;
+    }
+    if (isNaN(oppAtt) || oppAtt <= 0) {
+      setOppError("Enter Opp's attempt");
+      return;
+    }
+    if (isNaN(myBW) || myBW <= 0) {
+      setOppError("Enter your body weight");
+      return;
+    }
+    if (isFullMeet && (isNaN(mySub) || mySub < 0)) {
+      setOppError("Enter your S+B subtotal");
+      return;
+    }
+
+    // Convert to KG for calculations
+    const oppBWkg = isKG ? oppBW : oppBW * LBS_TO_KG;
+    const oppSubKg = isKG ? oppSub : oppSub * LBS_TO_KG;
+    const oppCurrentKg = isKG ? oppCurrent : oppCurrent * LBS_TO_KG;
+    const oppAttKg = isKG ? oppAtt : oppAtt * LBS_TO_KG;
+    const myBWkg = isKG ? myBW : myBW * LBS_TO_KG;
+    const mySubKg = isKG ? mySub : mySub * LBS_TO_KG;
+
+    // Calculate opp's total based on hit/miss
+    let oppTotalKg: number;
+    if (oppHits) {
+      // If opp hits, their new lift replaces the old one if it's higher
+      const newLift = Math.max(oppCurrentKg, oppAttKg);
+      oppTotalKg = oppSubKg + newLift;
+    } else {
+      // If opp misses, their total stays with current lift
+      oppTotalKg = oppSubKg + oppCurrentKg;
+    }
+
+    // Calculate opp's score
+    const oppScoreValue = calculateScore(oppBWkg, oppTotalKg, isFemale, oppScoreType, oppEvent, oppCategory);
+
+    const margin = parseFloat(beatMargin) || (beatMode === "points" ? 0.01 : 0.5);
+    let myLiftNeededKg: number;
+
+    if (beatMode === "points") {
+      // Calculate score needed to beat opp by the specified margin
+      const targetScoreValue = oppScoreValue + margin;
+
+      // Calculate total I need to achieve that score
+      const myTotalNeededKg = calculateTargetWeight(myBWkg, targetScoreValue, oppScoreType, isFemale, oppEvent, oppCategory, true);
+
+      // Calculate the lift I need (total - subtotal)
+      myLiftNeededKg = myTotalNeededKg - mySubKg;
+    } else {
+      // Beat by total: just need to lift more than opp's total by the margin
+      // Convert margin to kg if needed
+      const marginKg = isKG ? margin : margin * LBS_TO_KG;
+      const myTotalNeededKg = oppTotalKg + marginKg;
+
+      // Calculate the lift I need (total - subtotal)
+      myLiftNeededKg = myTotalNeededKg - mySubKg;
+    }
+
+    // Convert back to user's unit
+    const myLiftNeeded = isKG ? myLiftNeededKg : myLiftNeededKg / LBS_TO_KG;
+    const oppTotal = isKG ? oppTotalKg : oppTotalKg / LBS_TO_KG;
+
+    setOppResult({
+      oppScore: oppScoreValue,
+      myLiftNeeded: myLiftNeeded,
+      oppTotal: oppTotal,
+      margin: margin,
+      beatMode: beatMode,
+    });
+  };
+
   const resetScores = () => {
     setBodyWeight("");
     setWeightLifted("");
@@ -323,8 +466,23 @@ export default function PowerOPPS() {
     setTargetError("");
   };
 
+  const resetOpp = () => {
+    setOppBodyWeight("");
+    setOppSubtotal("");
+    setOppCurrentLift("");
+    setOppAttempt("");
+    setMyBodyWeight("");
+    setMySubtotal("");
+    setOppResult(null);
+    setOppError("");
+    setBeatMode("points");
+    setBeatMargin("0.01");
+  };
+
   const unitLabel = unit.toUpperCase();
   const targetUnitLabel = targetUnit.toUpperCase();
+  const oppUnitLabel = oppUnit.toUpperCase();
+  const liftName = oppCategory === "PL" ? "Deadlift" : "Bench";
 
   return (
     <main className="min-h-screen bg-background">
@@ -341,7 +499,7 @@ export default function PowerOPPS() {
       </header>
 
       <div className="max-w-2xl mx-auto px-4 py-4 sm:py-6">
-        {/* Title - hidden on mobile when keyboard might be open */}
+        {/* Title */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -349,7 +507,7 @@ export default function PowerOPPS() {
           className="text-center mb-4 sm:mb-6"
         >
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">Powerlifting Calculator</h2>
-          <p className="text-muted text-xs sm:text-sm hidden sm:block">Calculate scores or find your target total</p>
+          <p className="text-muted text-xs sm:text-sm hidden sm:block">Calculate scores, find targets, or beat your competition</p>
         </motion.div>
 
         {/* Tab Selector */}
@@ -361,21 +519,31 @@ export default function PowerOPPS() {
         >
           <button
             onClick={() => setActiveTab("scores")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition-colors ${
+            className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm ${
               activeTab === "scores" ? "bg-accent text-white" : "text-muted hover:text-foreground"
             }`}
           >
-            <Calculator size={18} />
+            <Calculator size={16} className="sm:w-[18px] sm:h-[18px]" />
             <span>Scores</span>
           </button>
           <button
             onClick={() => setActiveTab("target")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition-colors ${
+            className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm ${
               activeTab === "target" ? "bg-accent text-white" : "text-muted hover:text-foreground"
             }`}
           >
-            <Target size={18} />
+            <Target size={16} className="sm:w-[18px] sm:h-[18px]" />
             <span>Target</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("opp")}
+            className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-lg font-medium transition-colors text-sm ${
+              activeTab === "opp" ? "bg-accent text-white" : "text-muted hover:text-foreground"
+            }`}
+          >
+            <Sword size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <span className="hidden xs:inline">fk the opp</span>
+            <span className="xs:hidden">Opp</span>
           </button>
         </motion.div>
 
@@ -469,7 +637,7 @@ export default function PowerOPPS() {
                 </div>
               )}
             </div>
-          ) : (
+          ) : activeTab === "target" ? (
             <div className="bg-card rounded-xl p-4 sm:p-5 border border-border">
               <div className="space-y-3 sm:space-y-4">
                 {/* Row 1: Gender & Units */}
@@ -565,6 +733,241 @@ export default function PowerOPPS() {
                   <p className="mt-3 text-xs text-muted">
                     {targetGender === "male" ? "Male" : "Female"} · {targetBodyWeight} {targetUnitLabel} body weight · {scoreType.toUpperCase()}
                     {scoreType === "ipfgl" && ` · ${targetEvent === "CL" ? "Classic" : "Equipped"} · ${targetCategory === "PL" ? "Full Meet" : "Bench Only"}`}
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-card rounded-xl p-4 sm:p-5 border border-border">
+              <div className="space-y-3 sm:space-y-4">
+                {/* Row 1: Gender & Units */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <div>
+                    <label className="block text-sm text-muted mb-1.5 sm:mb-2">Gender</label>
+                    <SegmentButton
+                      options={[{ value: "male", label: "Male" }, { value: "female", label: "Female" }]}
+                      value={oppGender}
+                      onChange={(v) => setOppGender(v as Gender)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-muted mb-1.5 sm:mb-2">Units</label>
+                    <SegmentButton
+                      options={[{ value: "kg", label: "KG" }, { value: "lbs", label: "LBS" }]}
+                      value={oppUnit}
+                      onChange={(v) => {
+                        const newUnit = v as Unit;
+                        setOppUnit(newUnit);
+                        // Convert beat margin if in total mode
+                        if (beatMode === "total" && beatMargin) {
+                          const currentVal = parseFloat(beatMargin);
+                          if (!isNaN(currentVal)) {
+                            if (newUnit === "lbs") {
+                              // Converting KG to LBS
+                              setBeatMargin((currentVal / LBS_TO_KG).toFixed(1));
+                            } else {
+                              // Converting LBS to KG
+                              setBeatMargin((currentVal * LBS_TO_KG).toFixed(2));
+                            }
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Score Type */}
+                <div>
+                  <label className="block text-sm text-muted mb-1.5 sm:mb-2">Score Type</label>
+                  <SegmentButton
+                    options={[
+                      { value: "dots", label: "DOTS" },
+                      { value: "ipfgl", label: "IPF GL" },
+                      { value: "wilks2", label: "Wilks 2.0" },
+                    ]}
+                    value={oppScoreType}
+                    onChange={(v) => setOppScoreType(v as ScoreType)}
+                  />
+                </div>
+
+                {/* Event & Category (for IPF GL, always show category for meet type) */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  {oppScoreType === "ipfgl" && (
+                    <div>
+                      <label className="block text-sm text-muted mb-1.5 sm:mb-2">Event</label>
+                      <SegmentButton
+                        options={[{ value: "CL", label: "Classic" }, { value: "EQ", label: "Equipped" }]}
+                        value={oppEvent}
+                        onChange={(v) => setOppEvent(v as Event)}
+                      />
+                    </div>
+                  )}
+                  <div className={oppScoreType !== "ipfgl" ? "col-span-2" : ""}>
+                    <label className="block text-sm text-muted mb-1.5 sm:mb-2">Category</label>
+                    <SegmentButton
+                      options={[{ value: "PL", label: "Full Meet" }, { value: "BN", label: "Bench Only" }]}
+                      value={oppCategory}
+                      onChange={(v) => setOppCategory(v as Category)}
+                    />
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-border pt-3">
+                  <p className="text-sm font-medium text-muted mb-3">Opponent Info</p>
+                </div>
+
+                {/* Opp inputs */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <InputField label="Opp's Body Weight" value={oppBodyWeight} onChange={setOppBodyWeight} placeholder="0" suffix={oppUnitLabel} />
+                  {oppCategory === "PL" && (
+                    <InputField label="Opp's S+B Subtotal" value={oppSubtotal} onChange={setOppSubtotal} placeholder="0" suffix={oppUnitLabel} />
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <InputField label={`Opp's Current ${liftName}`} value={oppCurrentLift} onChange={setOppCurrentLift} placeholder="0" suffix={oppUnitLabel} />
+                  <InputField label={`Opp's ${liftName} Attempt`} value={oppAttempt} onChange={setOppAttempt} placeholder="0" suffix={oppUnitLabel} />
+                </div>
+
+                {/* Hit/Miss Toggle */}
+                <div>
+                  <label className="block text-sm text-muted mb-2 text-center">Opp&apos;s Attempt Result</label>
+                  <ToggleSwitch
+                    checked={oppHits}
+                    onChange={setOppHits}
+                    labelLeft="Miss"
+                    labelRight="Hit"
+                  />
+                </div>
+
+                {/* Beat Mode Toggle */}
+                <div>
+                  <label className="block text-sm text-muted mb-2">Beat by</label>
+                  <SegmentButton
+                    options={[
+                      { value: "points", label: "Points" },
+                      { value: "total", label: `Total (${oppUnitLabel})` },
+                    ]}
+                    value={beatMode}
+                    onChange={(v) => {
+                      setBeatMode(v as "points" | "total");
+                      setBeatMargin(v === "points" ? "0.01" : "0.5");
+                    }}
+                  />
+                </div>
+
+                {/* Beat Margin Selector */}
+                <div>
+                  <label className="block text-sm text-muted mb-2">
+                    {beatMode === "points" ? "Beat by how many points?" : `Beat by how much ${oppUnitLabel}?`}
+                  </label>
+                  {(() => {
+                    const pointsPresets = ["0.01", "0.1", "0.5", "1", "5"];
+                    const totalPresetsKG = ["0.5", "1", "1.5", "2", "2.5", "5"];
+                    const totalPresetsLBS = ["1", "2.5", "5", "5.5", "10", "11"];
+                    const presets = beatMode === "points"
+                      ? pointsPresets
+                      : oppUnit === "kg" ? totalPresetsKG : totalPresetsLBS;
+                    const isCustom = !presets.includes(beatMargin) && beatMargin !== "";
+
+                    return (
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                        {presets.map((val) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setBeatMargin(val)}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                              beatMargin === val
+                                ? "bg-red-500 text-white"
+                                : "bg-background text-muted hover:text-foreground border border-border"
+                            }`}
+                          >
+                            +{val}{beatMode === "total" ? ` ${oppUnitLabel}` : ""}
+                          </button>
+                        ))}
+                        <div className="relative flex-1 min-w-[80px]">
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            value={isCustom ? beatMargin : ""}
+                            onChange={(e) => setBeatMargin(e.target.value)}
+                            onFocus={() => {
+                              if (presets.includes(beatMargin)) {
+                                setBeatMargin("");
+                              }
+                            }}
+                            placeholder="Custom"
+                            className={`w-full px-3 py-1.5 text-sm bg-background border rounded-lg placeholder:text-muted/50 focus:outline-none transition-colors ${
+                              isCustom ? "border-red-500 text-foreground" : "border-border text-muted"
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-border pt-3">
+                  <p className="text-sm font-medium text-muted mb-3">Your Info</p>
+                </div>
+
+                {/* Your inputs */}
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <InputField label="Your Body Weight" value={myBodyWeight} onChange={setMyBodyWeight} placeholder="0" suffix={oppUnitLabel} />
+                  {oppCategory === "PL" && (
+                    <InputField label="Your S+B Subtotal" value={mySubtotal} onChange={setMySubtotal} placeholder="0" suffix={oppUnitLabel} />
+                  )}
+                </div>
+
+                {oppError && <p className="text-red-500 text-sm text-center">{oppError}</p>}
+
+                <button
+                  onClick={handleCalculateOpp}
+                  className="w-full py-3 sm:py-3.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Calculate What I Need
+                </button>
+              </div>
+
+              {/* Result */}
+              {oppResult && (
+                <div className="mt-5 pt-5 border-t border-border">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold">Battle Plan</h3>
+                    <button onClick={resetOpp} className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors">
+                      <RotateCcw size={14} />
+                      Reset
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="p-4 bg-background rounded-lg">
+                      <div className="text-xs text-muted uppercase tracking-wide mb-1">
+                        Opp&apos;s {oppHits ? "Final" : "Current"} Score ({oppHits ? "if they hit" : "they missed"})
+                      </div>
+                      <div className="text-2xl font-bold tabular-nums">{oppResult.oppScore.toFixed(2)} <span className="text-sm font-normal text-muted">{oppScoreType.toUpperCase()}</span></div>
+                      <div className="text-xs text-muted mt-1">Total: {oppResult.oppTotal.toFixed(1)} {oppUnitLabel}</div>
+                    </div>
+
+                    <div className="text-center p-5 bg-red-500/10 rounded-xl border border-red-500/20">
+                      <div className="text-xs text-muted uppercase tracking-wide mb-2">You need to {liftName.toLowerCase()} at least</div>
+                      <div className="text-4xl font-bold text-red-500 tabular-nums">
+                        {oppResult.myLiftNeeded.toFixed(1)} <span className="text-xl">{oppUnitLabel}</span>
+                      </div>
+                      <p className="text-muted text-sm mt-2">
+                        {oppResult.beatMode === "points"
+                          ? `to beat ${oppResult.oppScore.toFixed(2)} by ${oppResult.margin} points`
+                          : `to beat ${oppResult.oppTotal.toFixed(1)} ${oppUnitLabel} by ${oppResult.margin} ${oppUnitLabel}`}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="mt-3 text-xs text-muted">
+                    {oppGender === "male" ? "Male" : "Female"} · {oppScoreType.toUpperCase()} · {oppCategory === "PL" ? "Full Meet" : "Bench Only"}
+                    {oppScoreType === "ipfgl" && ` · ${oppEvent === "CL" ? "Classic" : "Equipped"}`}
                   </p>
                 </div>
               )}
