@@ -2,16 +2,33 @@
 
 import { Github, Linkedin, Mail, Instagram } from "lucide-react";
 
+function formatLastUpdated(isoString: string | undefined): string {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const lastUpdated = formatLastUpdated(process.env.NEXT_PUBLIC_BUILD_TIME);
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 z-40 py-4 px-6 bg-background/90 backdrop-blur-lg border-t border-border footer-shadow">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between">
-          <p className="text-muted text-sm">
-            &copy; {currentYear} Wentao
-          </p>
+          <div className="flex items-center gap-3 text-muted text-sm">
+            <span>&copy; {currentYear} Wentao</span>
+            {lastUpdated && (
+              <>
+                <span className="hidden sm:inline">·</span>
+                <span className="hidden sm:inline">Updated {lastUpdated}</span>
+              </>
+            )}
+          </div>
 
           <div className="flex items-center gap-5">
             <a

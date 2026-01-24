@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-:root {
+/* Dark theme (default) */
+:root, .dark {
   --background: #0a0a0b;
   --foreground: #fafafa;
   --muted: #71717a;
@@ -9,6 +10,18 @@
   --card: #18181b;
   --card-hover: #27272a;
   --border: #27272a;
+}
+
+/* Light theme */
+.light {
+  --background: #ffffff;
+  --foreground: #0a0a0b;
+  --muted: #6b7280;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --card: #f4f4f5;
+  --card-hover: #e4e4e7;
+  --border: #e4e4e7;
 }
 
 @theme inline {
@@ -63,12 +76,20 @@ body {
 }
 
 /* Subtle shadow for cards */
-.card-shadow {
+.dark .card-shadow {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
-.footer-shadow {
+.light .card-shadow {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.dark .footer-shadow {
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.light .footer-shadow {
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
 }
 
 /* Hide number input spinners */

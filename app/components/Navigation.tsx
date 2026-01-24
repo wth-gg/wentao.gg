@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown, Dumbbell, Video } from "lucide-react";
 import Link from "next/link";
+import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
   { name: "About", href: "#about" },
@@ -91,7 +92,7 @@ export default function Navigation() {
             </motion.a>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-6">
               {navItems.map((item, index) => (
                 item.hasDropdown ? (
                   <div
@@ -183,6 +184,7 @@ export default function Navigation() {
                   </motion.a>
                 )
               ))}
+              <ThemeToggle />
             </div>
 
             {/* Mobile Menu Button */}
@@ -294,6 +296,9 @@ export default function Navigation() {
                   </motion.a>
                 )
               ))}
+              <div className="mt-6">
+                <ThemeToggle />
+              </div>
             </div>
           </motion.div>
         )}
