@@ -153,15 +153,15 @@ export default function Hero() {
   const textSections: TextSection[] = [
     {
       text: "Wentao",
-      className: "block text-5xl md:text-7xl font-bold tracking-tight text-foreground mb-4",
+      className: "block text-5xl md:text-7xl font-bold tracking-[-0.04em] text-foreground mb-4",
     },
     {
       text: "⚙️ Engineer + 💻 Developer",
-      className: "block text-2xl md:text-4xl font-semibold text-muted mb-4",
+      className: "block text-xl md:text-3xl font-medium tracking-[-0.01em] text-muted mb-4",
     },
     {
       text: "Building infrastructure to scale, shaping data to drive product decisions.",
-      className: "block text-lg text-muted max-w-2xl leading-relaxed",
+      className: "block text-base md:text-lg text-muted/80 max-w-2xl leading-[1.7]",
     },
   ];
 
@@ -181,7 +181,7 @@ export default function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="text-accent text-sm tracking-wider"
+            className="text-accent text-sm font-medium tracking-wide"
           >
             {greeting}
           </motion.p>

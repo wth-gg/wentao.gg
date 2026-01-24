@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import { Fira_Code } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "./components/ThemeProvider";
 import "./globals.css";
-
-const firaCode = Fira_Code({
-  variable: "--font-fira-code",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Wentao | Engineer + Developer",
@@ -45,7 +41,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={`${firaCode.variable} antialiased bg-background text-foreground`}>
+      <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased bg-background text-foreground`}>
         <ThemeProvider>
           {children}
         </ThemeProvider>
