@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
+import { motion, useMotionValue, useSpring, useMotionTemplate, AnimatePresence } from "framer-motion";
 
 interface Ripple {
   id: number;
@@ -10,20 +10,28 @@ interface Ripple {
 }
 
 export default function InteractiveEffects() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(true); // Default to mobile to avoid flash
+  const [mounted, setMounted] = useState(false);
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   // Cursor position with spring physics
-  const cursorX = useMotionValue(-100);
-  const cursorY = useMotionValue(-100);
-  const springX = useSpring(cursorX, { stiffness: 150, damping: 15 });
-  const springY = useSpring(cursorY, { stiffness: 150, damping: 15 });
+  const cursorX = useMotionValue(0);
+  const cursorY = useMotionValue(0);
+  const springX = useSpring(cursorX, { stiffness: 100, damping: 20 });
+  const springY = useSpring(cursorY, { stiffness: 100, damping: 20 });
 
-  // Detect mobile
+  // Create animated gradient background using motion template
+  const cursorGradient = useMotionTemplate`radial-gradient(600px circle at ${springX}px ${springY}px, rgba(59, 130, 246, 0.15), transparent 40%)`;
+
+  // Detect mobile and set mounted
   useEffect(() => {
+    setMounted(true);
     const checkMobile = () => {
-      setIsMobile(window.matchMedia("(pointer: coarse)").matches);
+      // Check for touch capability AND no fine pointer (mouse)
+      const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      const hasMouse = window.matchMedia("(pointer: fine)").matches;
+      setIsMobile(hasTouch && !hasMouse);
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -32,7 +40,7 @@ export default function InteractiveEffects() {
 
   // Desktop: Cursor glow
   useEffect(() => {
-    if (isMobile) return;
+    if (isMobile || !mounted) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       cursorX.set(e.clientX);
@@ -41,7 +49,7 @@ export default function InteractiveEffects() {
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [isMobile, cursorX, cursorY]);
+  }, [isMobile, mounted, cursorX, cursorY]);
 
   // Mobile: Touch ripple
   const handleTouch = useCallback((e: TouchEvent) => {
@@ -113,11 +121,11 @@ export default function InteractiveEffects() {
   return (
     <>
       {/* Desktop: Cursor glow */}
-      {!isMobile && (
+      {mounted && !isMobile && (
         <motion.div
-          className="pointer-events-none fixed inset-0 z-30 opacity-50"
+          className="pointer-events-none fixed inset-0 z-30"
           style={{
-            background: `radial-gradient(600px circle at ${springX}px ${springY}px, rgba(59, 130, 246, 0.15), transparent 40%)`,
+            background: cursorGradient,
           }}
         />
       )}
@@ -149,7 +157,7 @@ export default function InteractiveEffects() {
       </AnimatePresence>
 
       {/* Mobile: Tilt-based ambient gradient */}
-      {isMobile && (
+      {mounted && isMobile && (
         <motion.div
           className="pointer-events-none fixed inset-0 z-30 opacity-30"
           animate={{
