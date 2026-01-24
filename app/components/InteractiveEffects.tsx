@@ -130,29 +130,32 @@ export default function InteractiveEffects() {
         />
       )}
 
-      {/* Mobile: Touch ripples */}
+      {/* Mobile: Touch ripples - elegant concentric rings */}
       <AnimatePresence>
         {ripples.map((ripple) => (
-          <motion.div
-            key={ripple.id}
-            className="pointer-events-none fixed z-50 rounded-full bg-accent/40 shadow-[0_0_20px_rgba(59,130,246,0.5)]"
-            initial={{
-              width: 0,
-              height: 0,
-              x: ripple.x,
-              y: ripple.y,
-              opacity: 0.8
-            }}
-            animate={{
-              width: 200,
-              height: 200,
-              x: ripple.x - 100,
-              y: ripple.y - 100,
-              opacity: 0
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          />
+          <div key={ripple.id} className="pointer-events-none fixed z-50" style={{ left: ripple.x, top: ripple.y }}>
+            {/* Outer ring */}
+            <motion.div
+              className="absolute rounded-full border border-accent/60"
+              initial={{ width: 0, height: 0, x: 0, y: 0, opacity: 0.6 }}
+              animate={{ width: 180, height: 180, x: -90, y: -90, opacity: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            />
+            {/* Middle ring */}
+            <motion.div
+              className="absolute rounded-full border-2 border-accent/40"
+              initial={{ width: 0, height: 0, x: 0, y: 0, opacity: 0.8 }}
+              animate={{ width: 120, height: 120, x: -60, y: -60, opacity: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 0.05 }}
+            />
+            {/* Inner glow */}
+            <motion.div
+              className="absolute rounded-full bg-accent/30"
+              initial={{ width: 0, height: 0, x: 0, y: 0, opacity: 1 }}
+              animate={{ width: 60, height: 60, x: -30, y: -30, opacity: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut", delay: 0.02 }}
+            />
+          </div>
         ))}
       </AnimatePresence>
 
