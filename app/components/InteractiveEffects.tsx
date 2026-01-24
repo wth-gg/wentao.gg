@@ -15,30 +15,35 @@ export default function InteractiveEffects() {
     setIsMobile(hasTouch && !hasMouse);
   }, []);
 
-  // WebGL Fluid Simulation
+  // WebGL Fluid Simulation - defer initialization for faster initial paint
   useEffect(() => {
     if (!mounted || !canvasRef.current) return;
 
     let fluidInstance: any = null;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     const initFluid = async () => {
       try {
         const WebGLFluid = (await import("webgl-fluid")).default;
         if (canvasRef.current) {
+          // Use lower resolution on mobile for better performance
+          const simRes = isMobile ? 256 : 512;
+          const dyeRes = isMobile ? 1024 : 2048;
+
           fluidInstance = WebGLFluid(canvasRef.current, {
             IMMEDIATE: false,
             TRIGGER: "hover",
-            SIM_RESOLUTION: 512,
-            DYE_RESOLUTION: 2048,
+            SIM_RESOLUTION: simRes,
+            DYE_RESOLUTION: dyeRes,
             CAPTURE_RESOLUTION: 256,
             DENSITY_DISSIPATION: 6,
             VELOCITY_DISSIPATION: 1,
             PRESSURE: 0.5,
-            PRESSURE_ITERATIONS: 40,
+            PRESSURE_ITERATIONS: isMobile ? 20 : 40,
             CURL: 2,
             SPLAT_RADIUS: 0.02,
             SPLAT_FORCE: 10000,
-            SHADING: true,
+            SHADING: !isMobile,
             COLORFUL: true,
             COLOR_UPDATE_SPEED: 12,
             PAUSED: false,
@@ -52,12 +57,14 @@ export default function InteractiveEffects() {
       }
     };
 
-    initFluid();
+    // Defer fluid initialization to after initial paint
+    timeoutId = setTimeout(initFluid, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       fluidInstance = null;
     };
-  }, [mounted]);
+  }, [mounted, isMobile]);
 
   // Forward touch events to canvas on mobile (allows scroll + fluid effect)
   useEffect(() => {

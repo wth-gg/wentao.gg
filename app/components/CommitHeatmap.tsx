@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { GitCommit, Code, Github } from "lucide-react";
 
@@ -28,22 +28,36 @@ function formatNumber(num: number): string {
   return num.toString();
 }
 
+// Cache for GitHub API responses (persists across re-renders)
+const apiCache: { data: any; timestamp: number } | null = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export default function SiteStats() {
   const [commitData, setCommitData] = useState<Map<string, number>>(new Map());
   const [stats, setStats] = useState<RepoStats>({ commits: 0, linesOfCode: 0, languages: [] });
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Responsive weeks: fewer on mobile
-  const weeksToShow = typeof window !== "undefined" && window.innerWidth < 640 ? 8 : 12;
+  // Detect mobile on mount
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 640);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch commits
-        const commitsRes = await fetch(
-          "https://api.github.com/repos/wth-gg/wentao.gg/commits?per_page=100"
-        );
+        // Fetch both endpoints in parallel for faster loading
+        const [commitsRes, langRes] = await Promise.all([
+          fetch("https://api.github.com/repos/wth-gg/wentao.gg/commits?per_page=100", {
+            next: { revalidate: 300 }, // Cache for 5 minutes
+          }),
+          fetch("https://api.github.com/repos/wth-gg/wentao.gg/languages", {
+            next: { revalidate: 300 },
+          }),
+        ]);
+
         const commits = commitsRes.ok ? await commitsRes.json() : [];
+        const languages = langRes.ok ? await langRes.json() : {};
 
         const countMap = new Map<string, number>();
         commits.forEach((commit: { commit: { author: { date: string } } }) => {
@@ -52,14 +66,7 @@ export default function SiteStats() {
         });
         setCommitData(countMap);
 
-        // Fetch languages for lines of code estimate
-        const langRes = await fetch(
-          "https://api.github.com/repos/wth-gg/wentao.gg/languages"
-        );
-        const languages = langRes.ok ? await langRes.json() : {};
-
         const totalBytes = Object.values(languages as Record<string, number>).reduce((a, b) => a + b, 0);
-        // Rough estimate: ~40 bytes per line on average
         const estimatedLines = Math.round(totalBytes / 40);
 
         const langArray = Object.entries(languages as Record<string, number>)
@@ -84,6 +91,9 @@ export default function SiteStats() {
 
     fetchData();
   }, []);
+
+  // Responsive weeks: fewer on mobile
+  const weeksToShow = isMobile ? 8 : 12;
 
   // Generate array of dates for the grid
   const today = new Date();
