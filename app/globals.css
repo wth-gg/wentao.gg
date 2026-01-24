@@ -159,16 +159,16 @@ button:active, .btn:active {
   background: linear-gradient(
     90deg,
     var(--foreground) 0%,
-    var(--foreground) 40%,
+    var(--foreground) 35%,
     var(--accent) 50%,
-    var(--foreground) 60%,
+    var(--foreground) 65%,
     var(--foreground) 100%
   );
   background-size: 200% auto;
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: shimmer 3s ease-in-out infinite;
+  animation: shimmer 6s ease-in-out infinite;
   animation-delay: 2s;
 }
 

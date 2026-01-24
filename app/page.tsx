@@ -1,5 +1,6 @@
 import Navigation from "./components/Navigation";
 import ScrollProgress from "./components/ScrollProgress";
+import InteractiveEffects from "./components/InteractiveEffects";
 import Hero from "./components/Hero";
 import Education from "./components/Education";
 import Experience from "./components/Experience";
@@ -12,6 +13,7 @@ export default function Home() {
   return (
     <>
       <ScrollProgress />
+      <InteractiveEffects />
       <Navigation />
       <main className="pb-20">
         <Hero />
