@@ -12,9 +12,9 @@ export default function Home() {
       <Navigation />
       <main className="pb-20">
         <Hero />
-        <Education />
-        <Experience />
         <Projects />
+        <Experience />
+        <Education />
         <Connect />
       </main>
       <Footer />

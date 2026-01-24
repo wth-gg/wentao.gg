@@ -8,10 +8,10 @@ import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
   { name: "About", href: "#about" },
-  { name: "Education", href: "#education" },
-  { name: "Experience", href: "#experience" },
   { name: "Projects", href: "#projects", hasDropdown: true },
-  { name: "Connect", href: "#connect" },
+  { name: "Experience", href: "#experience" },
+  { name: "Education", href: "#education" },
+  { name: "Contact", href: "#connect", isButton: true },
 ];
 
 const projectItems = [
@@ -170,6 +170,19 @@ export default function Navigation() {
                       )}
                     </AnimatePresence>
                   </div>
+                ) : item.isButton ? (
+                  <motion.a
+                    key={item.name}
+                    href={item.href}
+                    className="text-sm font-medium px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg transition-colors"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {item.name}
+                  </motion.a>
                 ) : (
                   <motion.a
                     key={item.name}
@@ -282,6 +295,18 @@ export default function Navigation() {
                       )}
                     </AnimatePresence>
                   </div>
+                ) : item.isButton ? (
+                  <motion.a
+                    key={item.name}
+                    href={item.href}
+                    className="text-xl font-medium px-6 py-3 bg-accent hover:bg-accent-hover text-white rounded-xl transition-colors"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.name}
+                  </motion.a>
                 ) : (
                   <motion.a
                     key={item.name}
