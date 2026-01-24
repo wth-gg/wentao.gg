@@ -128,8 +128,27 @@ function TypeWriter({
   );
 }
 
+function getGreeting(): string {
+  if (typeof document === "undefined") return "Hey there 👋 I'm";
+  const match = document.cookie.match(/visitor-greeting=([^;]+)/);
+  if (match) {
+    try {
+      const greeting = decodeURIComponent(match[1]);
+      return `${greeting}! I'm`;
+    } catch {
+      return "Hey there 👋 I'm";
+    }
+  }
+  return "Hey there 👋 I'm";
+}
+
 export default function Hero() {
   const [typingComplete, setTypingComplete] = useState(false);
+  const [greeting, setGreeting] = useState("Hey there 👋 I'm");
+
+  useEffect(() => {
+    setGreeting(getGreeting());
+  }, []);
 
   const textSections: TextSection[] = [
     {
@@ -162,9 +181,9 @@ export default function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="text-accent font-mono text-sm tracking-wider"
+            className="text-accent text-sm tracking-wider"
           >
-            Hello, I&apos;m
+            {greeting}
           </motion.p>
 
           <TypeWriter
@@ -196,7 +215,7 @@ export default function Hero() {
           className="absolute bottom-10 left-1/2 -translate-x-1/2"
         >
           <motion.a
-            href="#education"
+            href="#projects"
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
             className="text-muted hover:text-foreground transition-colors"
