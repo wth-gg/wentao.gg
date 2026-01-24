@@ -69,20 +69,20 @@ export default function InteractiveEffects() {
       const touch = e.touches[0] || e.changedTouches[0];
       if (!touch) return;
 
-      const pointerEvent = new PointerEvent(type, {
+      // Create and dispatch mouse event to canvas
+      const mouseEvent = new MouseEvent(type, {
         clientX: touch.clientX,
         clientY: touch.clientY,
-        pointerId: touch.identifier,
-        pointerType: "touch",
-        isPrimary: true,
         bubbles: true,
+        cancelable: true,
+        view: window,
       });
-      canvas.dispatchEvent(pointerEvent);
+      canvas.dispatchEvent(mouseEvent);
     };
 
-    const handleTouchStart = (e: TouchEvent) => forwardTouchEvent(e, "pointerdown");
-    const handleTouchMove = (e: TouchEvent) => forwardTouchEvent(e, "pointermove");
-    const handleTouchEnd = (e: TouchEvent) => forwardTouchEvent(e, "pointerup");
+    const handleTouchStart = (e: TouchEvent) => forwardTouchEvent(e, "mousedown");
+    const handleTouchMove = (e: TouchEvent) => forwardTouchEvent(e, "mousemove");
+    const handleTouchEnd = (e: TouchEvent) => forwardTouchEvent(e, "mouseup");
 
     document.addEventListener("touchstart", handleTouchStart, { passive: true });
     document.addEventListener("touchmove", handleTouchMove, { passive: true });
