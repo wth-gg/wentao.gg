@@ -133,7 +133,12 @@ function getGreeting(): string {
   const match = document.cookie.match(/visitor-greeting=([^;]+)/);
   if (match) {
     try {
-      const greeting = decodeURIComponent(match[1]);
+      // Decode URI component (cookies are URL-encoded)
+      let greeting = decodeURIComponent(match[1]);
+      // Handle case where it might be double-encoded
+      if (greeting.includes("%")) {
+        greeting = decodeURIComponent(greeting);
+      }
       return `${greeting}! I'm`;
     } catch {
       return "Hey there 👋 I'm";

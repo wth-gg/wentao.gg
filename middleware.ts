@@ -25,9 +25,10 @@ function getTimeGreeting(hour: number): string {
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
-  // Get geolocation data from Vercel headers
+  // Get geolocation data from Vercel headers (city may be URL-encoded)
   const country = request.headers.get("x-vercel-ip-country") || "";
-  const city = request.headers.get("x-vercel-ip-city") || "";
+  const rawCity = request.headers.get("x-vercel-ip-city") || "";
+  const city = rawCity ? decodeURIComponent(rawCity) : "";
   const timezone = request.headers.get("x-vercel-ip-timezone") || "America/New_York";
 
   // Calculate local hour based on timezone
