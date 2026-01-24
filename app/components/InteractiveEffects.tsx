@@ -79,7 +79,7 @@ export default function InteractiveEffects() {
 
   // Mobile: Device tilt parallax
   useEffect(() => {
-    if (!isMobile) return;
+    if (!isMobile || !mounted) return;
 
     const handleOrientation = (e: DeviceOrientationEvent) => {
       const x = e.gamma ? Math.min(Math.max(e.gamma, -30), 30) / 30 : 0; // Left/right tilt
@@ -97,26 +97,26 @@ export default function InteractiveEffects() {
             window.addEventListener("deviceorientation", handleOrientation);
           }
         } catch (error) {
-          console.log("DeviceOrientation permission denied");
+          // Permission denied or error
         }
       };
 
-      // Add one-time click listener to request permission
+      // Add click listener to request permission (stays until permission granted)
       const handleClick = () => {
         requestPermission();
-        document.removeEventListener("click", handleClick);
       };
-      document.addEventListener("click", handleClick);
+      document.addEventListener("click", handleClick, { once: true });
 
       return () => {
         document.removeEventListener("click", handleClick);
         window.removeEventListener("deviceorientation", handleOrientation);
       };
     } else {
+      // Android and other devices - just add the listener
       window.addEventListener("deviceorientation", handleOrientation);
       return () => window.removeEventListener("deviceorientation", handleOrientation);
     }
-  }, [isMobile]);
+  }, [isMobile, mounted]);
 
   return (
     <>
@@ -161,9 +161,9 @@ export default function InteractiveEffects() {
         <motion.div
           className="pointer-events-none fixed inset-0 z-30"
           animate={{
-            background: `radial-gradient(circle at ${50 + tilt.x * 30}% ${50 + tilt.y * 30}%, rgba(59, 130, 246, 0.35), transparent 50%)`,
+            background: `radial-gradient(600px circle at ${50 + tilt.x * 40}% ${50 + tilt.y * 40}%, rgba(59, 130, 246, 0.25), transparent 60%)`,
           }}
-          transition={{ type: "tween", duration: 0.1 }}
+          transition={{ type: "tween", duration: 0.15 }}
         />
       )}
     </>
