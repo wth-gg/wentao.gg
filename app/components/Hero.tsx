@@ -57,20 +57,24 @@ const greetingsByPeriod: Record<string, string[]> = {
 
 const defaultGreetings = ["Hey there 👋", "Welcome 👋", "Hello 👋"];
 
+type TypingPhase = "typing" | "waiting" | "deleting";
+
 function RotatingGreeting({
   greetings,
   location,
-  typingSpeed = 50,
-  displayDuration = 3000,
+  typingSpeed = 40,
+  deleteSpeed = 20,
+  displayDuration = 3500,
 }: {
   greetings: string[];
   location: string;
   typingSpeed?: number;
+  deleteSpeed?: number;
   displayDuration?: number;
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
-  const [isTyping, setIsTyping] = useState(true);
+  const [phase, setPhase] = useState<TypingPhase>("typing");
   const [showCursor, setShowCursor] = useState(true);
 
   const currentGreeting = greetings[currentIndex];
@@ -78,32 +82,35 @@ function RotatingGreeting({
     ? `${currentGreeting}, visitor from ${location}! I'm`
     : `${currentGreeting}! I'm`;
 
-  // Typing effect
+  // Main animation loop
   useEffect(() => {
-    if (!isTyping) return;
+    let timeout: ReturnType<typeof setTimeout>;
 
-    if (displayedText.length < fullText.length) {
-      const timeout = setTimeout(() => {
-        setDisplayedText(fullText.slice(0, displayedText.length + 1));
-      }, typingSpeed);
-      return () => clearTimeout(timeout);
-    } else {
-      setIsTyping(false);
-      // Wait then move to next greeting
-      const timeout = setTimeout(() => {
-        setDisplayedText("");
+    if (phase === "typing") {
+      if (displayedText.length < fullText.length) {
+        timeout = setTimeout(() => {
+          setDisplayedText(fullText.slice(0, displayedText.length + 1));
+        }, typingSpeed);
+      } else {
+        // Finished typing, wait before deleting
+        timeout = setTimeout(() => {
+          setPhase("deleting");
+        }, displayDuration);
+      }
+    } else if (phase === "deleting") {
+      if (displayedText.length > 0) {
+        timeout = setTimeout(() => {
+          setDisplayedText(displayedText.slice(0, -1));
+        }, deleteSpeed);
+      } else {
+        // Finished deleting, move to next greeting
         setCurrentIndex((prev) => (prev + 1) % greetings.length);
-        setIsTyping(true);
-      }, displayDuration);
-      return () => clearTimeout(timeout);
+        setPhase("typing");
+      }
     }
-  }, [displayedText, fullText, isTyping, typingSpeed, displayDuration, greetings.length]);
 
-  // Reset when greeting changes
-  useEffect(() => {
-    setDisplayedText("");
-    setIsTyping(true);
-  }, [currentIndex]);
+    return () => clearTimeout(timeout);
+  }, [displayedText, phase, fullText, typingSpeed, deleteSpeed, displayDuration, greetings.length]);
 
   // Blinking cursor
   useEffect(() => {
@@ -325,8 +332,9 @@ export default function Hero() {
               <RotatingGreeting
                 greetings={greetings}
                 location={greetingData.location}
-                typingSpeed={40}
-                displayDuration={4000}
+                typingSpeed={30}
+                deleteSpeed={15}
+                displayDuration={2000}
               />
             )}
           </motion.div>
