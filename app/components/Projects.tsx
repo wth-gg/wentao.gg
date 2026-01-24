@@ -51,7 +51,8 @@ export default function Projects() {
           className="mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Projects</h2>
-          <div className="w-16 h-1 bg-accent" />
+          <div className="w-16 h-1 bg-accent mb-3" />
+          <p className="text-sm text-muted">Actively maintained</p>
         </motion.div>
 
         <motion.div
