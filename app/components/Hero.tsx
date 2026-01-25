@@ -1,15 +1,15 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
-interface TextSection {
-  text: string;
-  className: string;
-}
+// ============================================================================
+// Constants
+// ============================================================================
 
-// Playful greetings for each time period
+const SCRAMBLE_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?/~`ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
 const greetingsByPeriod: Record<string, string[]> = {
   early_morning: [
     "Rise and shine ☀️",
@@ -57,205 +57,224 @@ const greetingsByPeriod: Record<string, string[]> = {
 
 const defaultGreetings = ["Hey there 👋", "Welcome 👋", "Hello 👋"];
 
-type TypingPhase = "typing" | "waiting" | "deleting";
+interface Persona {
+  position: string;
+  description: string;
+}
 
-function RotatingGreeting({
+const personas: Persona[] = [
+  {
+    position: "⚙️ Engineer + 💻 Developer",
+    description: "Building infrastructure to scale, shaping data to drive product decisions.",
+  },
+  {
+    position: "🏋️ Powerlifter",
+    description: "Compiling strength toward a 900KG total. Currently debugging my squat form.",
+  },
+];
+
+// ============================================================================
+// ScrambleText Component
+// ============================================================================
+
+function ScrambleText({
+  text,
+  className,
+  scrambleSpeed = 30,
+  revealSpeed = 50,
+  onComplete,
+}: {
+  text: string;
+  className?: string;
+  scrambleSpeed?: number;
+  revealSpeed?: number;
+  onComplete?: () => void;
+}) {
+  const [displayText, setDisplayText] = useState("");
+  const [isScrambling, setIsScrambling] = useState(false);
+  const prevTextRef = useRef(text);
+  const frameRef = useRef<number>(0);
+  const revealedRef = useRef(0);
+  const hasCalledComplete = useRef(false);
+
+  useEffect(() => {
+    if (text !== prevTextRef.current || displayText === "") {
+      prevTextRef.current = text;
+      revealedRef.current = 0;
+      hasCalledComplete.current = false;
+      setIsScrambling(true);
+    }
+  }, [text, displayText]);
+
+  useEffect(() => {
+    if (!isScrambling || !text) return;
+
+    const scrambleInterval = setInterval(() => {
+      frameRef.current++;
+
+      if (frameRef.current % Math.ceil(revealSpeed / scrambleSpeed) === 0) {
+        revealedRef.current++;
+      }
+
+      let result = "";
+      for (let i = 0; i < text.length; i++) {
+        if (i < revealedRef.current) {
+          result += text[i];
+        } else if (text[i] === " ") {
+          result += " ";
+        } else if (/[\u{1F300}-\u{1F9FF}]/u.test(text[i])) {
+          result += text[i];
+        } else {
+          result += SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+        }
+      }
+
+      setDisplayText(result);
+
+      if (revealedRef.current >= text.length) {
+        setIsScrambling(false);
+        setDisplayText(text);
+        frameRef.current = 0;
+        if (!hasCalledComplete.current) {
+          hasCalledComplete.current = true;
+          onComplete?.();
+        }
+      }
+    }, scrambleSpeed);
+
+    return () => clearInterval(scrambleInterval);
+  }, [isScrambling, text, scrambleSpeed, revealSpeed, onComplete]);
+
+  return <span className={className}>{displayText}</span>;
+}
+
+// ============================================================================
+// useRotatingContent Hook
+// ============================================================================
+
+type RotationPhase =
+  | "initial_greeting"   // Wait for greeting scramble to complete
+  | "typing_persona"     // Type position + description together
+  | "displaying"         // Pause before deleting
+  | "deleting"           // Delete position + description (and greeting if changing)
+  | "typing_rotation";   // Type new persona (and greeting if it changed)
+
+function useRotatingContent({
   greetings,
+  personas,
   location,
-  typingSpeed = 40,
-  deleteSpeed = 20,
-  displayDuration = 3500,
+  personaTypingSpeed = 6,
+  personaDeleteSpeed = 3,
+  displayDuration = 4000,
 }: {
   greetings: string[];
+  personas: Persona[];
   location: string;
-  typingSpeed?: number;
-  deleteSpeed?: number;
+  personaTypingSpeed?: number;
+  personaDeleteSpeed?: number;
   displayDuration?: number;
 }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [displayedText, setDisplayedText] = useState("");
-  const [phase, setPhase] = useState<TypingPhase>("typing");
+  const [greetingIndex, setGreetingIndex] = useState(0);
+  const [personaIndex, setPersonaIndex] = useState(0);
+  const rotationCountRef = useRef(0);
+  const [positionText, setPositionText] = useState("");
+  const [descriptionText, setDescriptionText] = useState("");
+  const [phase, setPhase] = useState<RotationPhase>("initial_greeting");
   const [showCursor, setShowCursor] = useState(true);
 
-  const currentGreeting = greetings[currentIndex];
-  const fullText = location
-    ? `${currentGreeting}, visitor from ${location}! I'm`
-    : `${currentGreeting}! I'm`;
+  const currentGreeting = greetings[greetingIndex];
+  const greetingTarget = location
+    ? `${currentGreeting}, visitor from ${location}!`
+    : `${currentGreeting}!`;
+  const currentPersona = personas[personaIndex];
+  const positionTarget = currentPersona.position;
+  const descriptionTarget = currentPersona.description;
 
-  // Main animation loop
+  // Blinking cursor
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowCursor((prev) => !prev);
+    }, 530);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Main animation state machine
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout>;
 
-    if (phase === "typing") {
-      if (displayedText.length < fullText.length) {
+    if (phase === "initial_greeting") {
+      // Wait for greeting and name to complete before typing persona
+      // This phase is controlled externally via greetingComplete prop
+      return;
+    }
+
+    if (phase === "typing_persona" || phase === "typing_rotation") {
+      const personaDone = positionText.length >= positionTarget.length &&
+                          descriptionText.length >= descriptionTarget.length;
+
+      if (!personaDone) {
         timeout = setTimeout(() => {
-          setDisplayedText(fullText.slice(0, displayedText.length + 1));
-        }, typingSpeed);
+          if (positionText.length < positionTarget.length) {
+            setPositionText(positionTarget.slice(0, positionText.length + 1));
+          }
+          if (descriptionText.length < descriptionTarget.length) {
+            setDescriptionText(descriptionTarget.slice(0, descriptionText.length + 1));
+          }
+        }, personaTypingSpeed);
       } else {
-        // Finished typing, wait before deleting
         timeout = setTimeout(() => {
-          setPhase("deleting");
+          setPhase("displaying");
         }, displayDuration);
       }
+    } else if (phase === "displaying") {
+      timeout = setTimeout(() => {
+        setPhase("deleting");
+      }, 0);
     } else if (phase === "deleting") {
-      if (displayedText.length > 0) {
+      const personaDone = positionText.length === 0 && descriptionText.length === 0;
+
+      if (!personaDone) {
         timeout = setTimeout(() => {
-          setDisplayedText(displayedText.slice(0, -1));
-        }, deleteSpeed);
+          if (positionText.length > 0) {
+            setPositionText(positionText.slice(0, -1));
+          }
+          if (descriptionText.length > 0) {
+            setDescriptionText(descriptionText.slice(0, -1));
+          }
+        }, personaDeleteSpeed);
       } else {
-        // Finished deleting, move to next greeting
-        setCurrentIndex((prev) => (prev + 1) % greetings.length);
-        setPhase("typing");
+        // Rotate to next persona; greeting rotates every 2nd time
+        setPersonaIndex((prev) => (prev + 1) % personas.length);
+        rotationCountRef.current += 1;
+        if (rotationCountRef.current % 2 === 0) {
+          setGreetingIndex((prev) => (prev + 1) % greetings.length);
+        }
+        setPhase("typing_rotation");
       }
     }
 
     return () => clearTimeout(timeout);
-  }, [displayedText, phase, fullText, typingSpeed, deleteSpeed, displayDuration, greetings.length]);
+  }, [phase, positionText, descriptionText, positionTarget, descriptionTarget,
+      personaTypingSpeed, personaDeleteSpeed, displayDuration,
+      greetings.length, personas.length]);
 
-  // Blinking cursor
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setShowCursor((prev) => !prev);
-    }, 530);
-    return () => clearInterval(interval);
-  }, []);
+  // Description is complete when fully typed and in display/delete phase
+  const isDescriptionComplete = (phase === "displaying" || phase === "deleting") ||
+    (descriptionText.length >= descriptionTarget.length && descriptionText.length > 0);
 
-  return (
-    <span className="text-accent text-sm font-medium tracking-wide">
-      {displayedText}
-      <span
-        className={`inline-block bg-accent align-baseline transition-opacity ${
-          showCursor ? "opacity-100" : "opacity-0"
-        }`}
-        style={{
-          width: "0.5em",
-          height: "1em",
-          marginLeft: "1px",
-          verticalAlign: "text-bottom",
-        }}
-      />
-    </span>
-  );
+  return {
+    greetingTarget,
+    positionText,
+    descriptionText,
+    showCursor,
+    isDescriptionComplete,
+    startPersonaTyping: () => setPhase("typing_persona"),
+  };
 }
 
-function TypeWriter({
-  sections,
-  speed = 60,
-  initialDelay = 600,
-  onComplete,
-}: {
-  sections: TextSection[];
-  speed?: number;
-  initialDelay?: number;
-  onComplete?: () => void;
-}) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTyping, setIsTyping] = useState(false);
-  const [showCursor, setShowCursor] = useState(true);
-
-  // Flatten all sections into a single character array with styling info
-  const allChars = useMemo(() => {
-    const chars: { char: string; sectionIndex: number; isNewSection: boolean }[] = [];
-    sections.forEach((section, sectionIndex) => {
-      section.text.split("").forEach((char, charIndex) => {
-        chars.push({
-          char,
-          sectionIndex,
-          isNewSection: charIndex === 0 && sectionIndex > 0,
-        });
-      });
-    });
-    return chars;
-  }, [sections]);
-
-  const totalLength = allChars.length;
-
-  // Start typing after initial delay
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setIsTyping(true);
-    }, initialDelay);
-    return () => clearTimeout(timeout);
-  }, [initialDelay]);
-
-  // Typing effect
-  useEffect(() => {
-    if (!isTyping) return;
-
-    if (currentIndex < totalLength) {
-      const timeout = setTimeout(() => {
-        setCurrentIndex((prev) => prev + 1);
-      }, speed);
-      return () => clearTimeout(timeout);
-    } else {
-      onComplete?.();
-    }
-  }, [currentIndex, isTyping, totalLength, speed, onComplete]);
-
-  // Blinking cursor
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setShowCursor((prev) => !prev);
-    }, 530);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Get current section for cursor sizing
-  const currentSectionIndex = currentIndex < totalLength
-    ? allChars[currentIndex]?.sectionIndex ?? sections.length - 1
-    : sections.length - 1;
-
-  // Build rendered sections
-  const isComplete = currentIndex >= totalLength;
-  const lastSectionIndex = sections.length - 1;
-
-  const renderedSections = sections.map((section, sectionIndex) => {
-    // Calculate how many characters of this section to show
-    let charsBeforeThisSection = 0;
-    for (let i = 0; i < sectionIndex; i++) {
-      charsBeforeThisSection += sections[i].text.length;
-    }
-
-    const charsToShowInThisSection = Math.max(
-      0,
-      Math.min(section.text.length, currentIndex - charsBeforeThisSection)
-    );
-
-    const displayedText = section.text.slice(0, charsToShowInThisSection);
-    const isCurrentSection = currentSectionIndex === sectionIndex;
-    const showCursorHere = isCurrentSection && currentIndex < totalLength;
-    const showEndCursor = isComplete && sectionIndex === lastSectionIndex;
-
-    if (charsToShowInThisSection === 0 && !showCursorHere) {
-      return null;
-    }
-
-    return (
-      <span key={sectionIndex} className={section.className}>
-        {displayedText}
-        {(showCursorHere || showEndCursor) && (
-          <span
-            className={`inline-block bg-accent align-baseline ${
-              showCursor ? "opacity-100" : "opacity-0"
-            }`}
-            style={{
-              width: "0.6em",
-              height: "1.1em",
-              marginLeft: "2px",
-              verticalAlign: "text-bottom",
-            }}
-          />
-        )}
-      </span>
-    );
-  });
-
-  return (
-    <div className="space-y-4">
-      {renderedSections}
-    </div>
-  );
-}
+// ============================================================================
+// Greeting Data Helper
+// ============================================================================
 
 interface GreetingData {
   timePeriod: string;
@@ -271,7 +290,6 @@ function getGreetingData(): GreetingData {
   if (match) {
     try {
       let data = decodeURIComponent(match[1]);
-      // Handle double-encoding
       if (data.includes("%")) {
         data = decodeURIComponent(data);
       }
@@ -283,10 +301,16 @@ function getGreetingData(): GreetingData {
   return { timePeriod: "morning", location: "" };
 }
 
+// ============================================================================
+// Hero Component
+// ============================================================================
+
 export default function Hero() {
-  const [typingComplete, setTypingComplete] = useState(false);
-  const [greetingData, setGreetingData] = useState<GreetingData>({ timePeriod: "morning", location: "" });
   const [mounted, setMounted] = useState(false);
+  const [greetingData, setGreetingData] = useState<GreetingData>({ timePeriod: "morning", location: "" });
+  const [greetingComplete, setGreetingComplete] = useState(false);
+  const [nameComplete, setNameComplete] = useState(false);
+  const [nameText, setNameText] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -295,20 +319,37 @@ export default function Hero() {
 
   const greetings = greetingsByPeriod[greetingData.timePeriod] || defaultGreetings;
 
-  const textSections: TextSection[] = [
-    {
-      text: "Wentao",
-      className: "block text-5xl md:text-7xl font-bold tracking-[-0.04em] text-foreground mb-4 text-shimmer",
-    },
-    {
-      text: "⚙️ Engineer + 💻 Developer",
-      className: "block text-xl md:text-3xl font-medium tracking-[-0.01em] text-muted mb-4",
-    },
-    {
-      text: "Building infrastructure to scale, shaping data to drive product decisions.",
-      className: "block text-base md:text-lg text-muted/80 max-w-2xl leading-[1.7]",
-    },
-  ];
+  const {
+    greetingTarget,
+    positionText,
+    descriptionText,
+    showCursor,
+    isDescriptionComplete,
+    startPersonaTyping,
+  } = useRotatingContent({
+    greetings,
+    personas,
+    location: greetingData.location,
+    personaTypingSpeed: 3,
+    personaDeleteSpeed: 2,
+    displayDuration: 2500,
+  });
+
+  // Type "I'm Wentao" after greeting completes
+  useEffect(() => {
+    if (!greetingComplete || nameComplete) return;
+
+    const target = "I'm Wentao";
+    if (nameText.length < target.length) {
+      const timeout = setTimeout(() => {
+        setNameText(target.slice(0, nameText.length + 1));
+      }, 50);
+      return () => clearTimeout(timeout);
+    } else {
+      setNameComplete(true);
+      startPersonaTyping();
+    }
+  }, [greetingComplete, nameText, nameComplete, startPersonaTyping]);
 
   return (
     <section
@@ -322,33 +363,56 @@ export default function Hero() {
           transition={{ duration: 0.3, ease: "easeOut" }}
           className="space-y-6 relative z-20 pointer-events-none"
         >
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="h-6"
-          >
-            {mounted && (
-              <RotatingGreeting
-                greetings={greetings}
-                location={greetingData.location}
-                typingSpeed={30}
-                deleteSpeed={15}
-                displayDuration={2000}
+          {/* Greeting line */}
+          {mounted && (
+            <div className="h-6">
+              <ScrambleText
+                text={greetingTarget}
+                className="text-accent text-sm font-medium tracking-wide"
+                scrambleSpeed={25}
+                revealSpeed={40}
+                onComplete={() => setGreetingComplete(true)}
               />
-            )}
-          </motion.div>
+            </div>
+          )}
 
-          <TypeWriter
-            sections={textSections}
-            speed={5}
-            initialDelay={10}
-            onComplete={() => setTypingComplete(true)}
-          />
+          <div className="space-y-4">
+            {/* Name */}
+            <div className="min-h-[3.5rem] md:min-h-[5rem]">
+              <span className="text-5xl md:text-7xl font-bold tracking-[-0.04em] text-foreground text-shimmer">
+                {greetingComplete && nameText}
+              </span>
+            </div>
 
+            {/* Position */}
+            <div className="min-h-[2rem] md:min-h-[2.5rem]">
+              <span className="block text-xl md:text-3xl font-medium tracking-[-0.01em] text-muted">
+                {positionText}
+              </span>
+            </div>
+
+            {/* Description with cursor */}
+            <div className="min-h-[1.75rem] md:min-h-[2rem]">
+              <span className="text-base md:text-lg text-muted/80 leading-[1.7]" style={{ display: "inline" }}>
+                {descriptionText}
+                <span
+                  className={`bg-accent ${isDescriptionComplete && showCursor ? "opacity-100" : "opacity-0"}`}
+                  style={{
+                    display: "inline-block",
+                    width: "0.6em",
+                    height: "1.1em",
+                    marginLeft: "3px",
+                    verticalAlign: "text-bottom",
+                  }}
+                />
+              </span>
+            </div>
+          </div>
+
+          {/* CTA Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: typingComplete ? 1 : 0, y: typingComplete ? 0 : 20 }}
+            animate={{ opacity: nameComplete ? 1 : 0, y: nameComplete ? 0 : 20 }}
             transition={{ delay: 0.3, duration: 0.5 }}
             className="flex gap-4 pt-4"
           >
@@ -361,6 +425,7 @@ export default function Hero() {
           </motion.div>
         </motion.div>
 
+        {/* Scroll indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
