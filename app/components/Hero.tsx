@@ -12,50 +12,69 @@ const SCRAMBLE_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?/~`ABCDEFGHIJKLMNOPQRSTUVWXYZa
 
 const greetingsByPeriod: Record<string, string[]> = {
   early_morning: [
-    "Rise and shine ☀️",
-    "Early bird gets the worm 🐦",
-    "Up with the sun 🌅",
-    "Morning hustle activated 💪",
+    "You're up before the bugs are ☀️",
+    "I see the coffee hasn't kicked in yet 🐦",
+    "The early dev catches the merge conflict 🌅",
+    "Looks like we're both on dawn patrol 💪",
   ],
   morning: [
-    "Good morning ☕",
-    "Hope your coffee is strong ☕",
-    "Ready to conquer the day? 🚀",
-    "Morning vibes ✨",
+    "I hope your coffee is as strong as your WiFi ☕",
+    "It's another beautiful day to ship some code 🚀",
+    "Let's make some bugs... I mean features ✨",
+    "It's time to turn caffeine into code ☕",
   ],
   midday: [
-    "Hope you're having a great day 🌤️",
-    "Lunch break browsing? 🍕",
-    "Halfway through the day 💫",
-    "Midday momentum 🎯",
+    "I see you're on a lunch break scroll 🍕",
+    "We're halfway to 5pm — keep pushing 💫",
+    "Taking a break from the IDE is always smart 🎯",
+    "That midday momentum hits different 🌤️",
   ],
   afternoon: [
-    "Happy afternoon 🌞",
-    "Afternoon productivity mode 💻",
-    "Making the most of the day ⚡",
-    "Cruising through the afternoon 🛹",
+    "Looks like you're fighting the afternoon slump ⚡",
+    "The post-lunch code review always hits hard 💻",
+    "I see you're cruising through the afternoon 🛹",
+    "PM productivity mode has been activated 🌞",
   ],
   evening: [
-    "Good evening ✨",
-    "Winding down? 🌆",
-    "Evening explorations 🔍",
-    "Golden hour greetings 🌅",
+    "Are you wrapping up or just getting started? 🌆",
+    "It's prime time for side projects ✨",
+    "Welcome to the golden hour of debugging 🔍",
+    "When the office clears, the real work begins 🌅",
   ],
   night: [
-    "Burning the midnight oil 🦉",
-    "Night owl mode activated 🌙",
-    "Late night coding? 💻",
-    "Stars are out ⭐",
+    "I see you're part of the night owl dev squad 🦉",
+    "We debug by moonlight, ship by daylight 🌙",
+    "The code always flows better after dark 💻",
+    "The stars are out, and so are the bugs ⭐",
   ],
   late_night: [
-    "Up late, huh? 🌙",
-    "Can't sleep? Same 😅",
-    "The internet never sleeps 🌐",
-    "Late night adventures 🚀",
+    "Sleep is just a social construct anyway 🌙",
+    "Those 3am commits hit different, don't they? 😅",
+    "The best features are written past midnight 🌐",
+    "It's just you and the servers now 🚀",
   ],
 };
 
-const defaultGreetings = ["Hey there 👋", "Welcome 👋", "Hello 👋"];
+const defaultGreetings = [
+  "Well hello there, fellow human 👋",
+  "Welcome to my corner of the internet 👋",
+  "I'm glad you stopped by 👋",
+];
+
+const visitorLines = {
+  withLocation: [
+    "I spotted you all the way from {location} 👀",
+    "Looks like you're tuning in from {location} 📡",
+    "You're beaming in from {location}, I see 🛸",
+    "I see you peeking in from {location} 🔭",
+  ],
+  withoutLocation: [
+    "I spotted you from somewhere on the interwebs 👀",
+    "Looks like you're tuning in from somewhere cool 📡",
+    "You're beaming in from parts unknown, I see 🛸",
+    "I see you peeking in from the digital void 🔭",
+  ],
+};
 
 interface Persona {
   position: string;
@@ -82,26 +101,22 @@ function ScrambleText({
   className,
   scrambleSpeed = 30,
   revealSpeed = 50,
-  onComplete,
 }: {
   text: string;
   className?: string;
   scrambleSpeed?: number;
   revealSpeed?: number;
-  onComplete?: () => void;
 }) {
   const [displayText, setDisplayText] = useState("");
   const [isScrambling, setIsScrambling] = useState(false);
   const prevTextRef = useRef(text);
   const frameRef = useRef<number>(0);
   const revealedRef = useRef(0);
-  const hasCalledComplete = useRef(false);
 
   useEffect(() => {
     if (text !== prevTextRef.current || displayText === "") {
       prevTextRef.current = text;
       revealedRef.current = 0;
-      hasCalledComplete.current = false;
       setIsScrambling(true);
     }
   }, [text, displayText]);
@@ -135,15 +150,11 @@ function ScrambleText({
         setIsScrambling(false);
         setDisplayText(text);
         frameRef.current = 0;
-        if (!hasCalledComplete.current) {
-          hasCalledComplete.current = true;
-          onComplete?.();
-        }
       }
     }, scrambleSpeed);
 
     return () => clearInterval(scrambleInterval);
-  }, [isScrambling, text, scrambleSpeed, revealSpeed, onComplete]);
+  }, [isScrambling, text, scrambleSpeed, revealSpeed]);
 
   return <span className={className}>{displayText}</span>;
 }
@@ -153,39 +164,32 @@ function ScrambleText({
 // ============================================================================
 
 type RotationPhase =
-  | "initial_greeting"   // Wait for greeting scramble to complete
-  | "typing_persona"     // Type position + description together
-  | "displaying"         // Pause before deleting
-  | "deleting"           // Delete position + description (and greeting if changing)
-  | "typing_rotation";   // Type new persona (and greeting if it changed)
+  | "waiting"         // Wait for name typing to complete
+  | "typing"          // Type position + description together
+  | "deleting";       // Delete position + description, then rotate
 
 function useRotatingContent({
   greetings,
   personas,
-  location,
   personaTypingSpeed = 6,
   personaDeleteSpeed = 3,
   displayDuration = 4000,
 }: {
   greetings: string[];
   personas: Persona[];
-  location: string;
   personaTypingSpeed?: number;
   personaDeleteSpeed?: number;
   displayDuration?: number;
 }) {
   const [greetingIndex, setGreetingIndex] = useState(0);
   const [personaIndex, setPersonaIndex] = useState(0);
-  const rotationCountRef = useRef(0);
   const [positionText, setPositionText] = useState("");
   const [descriptionText, setDescriptionText] = useState("");
-  const [phase, setPhase] = useState<RotationPhase>("initial_greeting");
+  const [phase, setPhase] = useState<RotationPhase>("waiting");
   const [showCursor, setShowCursor] = useState(true);
+  const rotationCountRef = useRef(0);
 
-  const currentGreeting = greetings[greetingIndex];
-  const greetingTarget = location
-    ? `${currentGreeting}, visitor from ${location}!`
-    : `${currentGreeting}!`;
+  const greetingTarget = greetings[greetingIndex];
   const currentPersona = personas[personaIndex];
   const positionTarget = currentPersona.position;
   const descriptionTarget = currentPersona.description;
@@ -200,19 +204,15 @@ function useRotatingContent({
 
   // Main animation state machine
   useEffect(() => {
+    if (phase === "waiting") return;
+
     let timeout: ReturnType<typeof setTimeout>;
 
-    if (phase === "initial_greeting") {
-      // Wait for greeting and name to complete before typing persona
-      // This phase is controlled externally via greetingComplete prop
-      return;
-    }
+    if (phase === "typing") {
+      const isDone = positionText.length >= positionTarget.length &&
+                     descriptionText.length >= descriptionTarget.length;
 
-    if (phase === "typing_persona" || phase === "typing_rotation") {
-      const personaDone = positionText.length >= positionTarget.length &&
-                          descriptionText.length >= descriptionTarget.length;
-
-      if (!personaDone) {
+      if (!isDone) {
         timeout = setTimeout(() => {
           if (positionText.length < positionTarget.length) {
             setPositionText(positionTarget.slice(0, positionText.length + 1));
@@ -222,18 +222,12 @@ function useRotatingContent({
           }
         }, personaTypingSpeed);
       } else {
-        timeout = setTimeout(() => {
-          setPhase("displaying");
-        }, displayDuration);
+        timeout = setTimeout(() => setPhase("deleting"), displayDuration);
       }
-    } else if (phase === "displaying") {
-      timeout = setTimeout(() => {
-        setPhase("deleting");
-      }, 0);
     } else if (phase === "deleting") {
-      const personaDone = positionText.length === 0 && descriptionText.length === 0;
+      const isDone = positionText.length === 0 && descriptionText.length === 0;
 
-      if (!personaDone) {
+      if (!isDone) {
         timeout = setTimeout(() => {
           if (positionText.length > 0) {
             setPositionText(positionText.slice(0, -1));
@@ -243,13 +237,13 @@ function useRotatingContent({
           }
         }, personaDeleteSpeed);
       } else {
-        // Rotate to next persona; greeting rotates every 2nd time
+        // Rotate: persona every time, greeting every 2nd time
         setPersonaIndex((prev) => (prev + 1) % personas.length);
         rotationCountRef.current += 1;
         if (rotationCountRef.current % 2 === 0) {
           setGreetingIndex((prev) => (prev + 1) % greetings.length);
         }
-        setPhase("typing_rotation");
+        setPhase("typing");
       }
     }
 
@@ -258,8 +252,7 @@ function useRotatingContent({
       personaTypingSpeed, personaDeleteSpeed, displayDuration,
       greetings.length, personas.length]);
 
-  // Description is complete when fully typed and in display/delete phase
-  const isDescriptionComplete = (phase === "displaying" || phase === "deleting") ||
+  const isDescriptionComplete = phase === "deleting" ||
     (descriptionText.length >= descriptionTarget.length && descriptionText.length > 0);
 
   return {
@@ -268,12 +261,12 @@ function useRotatingContent({
     descriptionText,
     showCursor,
     isDescriptionComplete,
-    startPersonaTyping: () => setPhase("typing_persona"),
+    startTyping: () => setPhase("typing"),
   };
 }
 
 // ============================================================================
-// Greeting Data Helper
+// Helpers
 // ============================================================================
 
 interface GreetingData {
@@ -301,6 +294,12 @@ function getGreetingData(): GreetingData {
   return { timePeriod: "morning", location: "" };
 }
 
+function getVisitorLine(location: string): string {
+  const lines = location ? visitorLines.withLocation : visitorLines.withoutLocation;
+  const line = lines[Math.floor(Math.random() * lines.length)];
+  return location ? line.replace("{location}", location) : line;
+}
+
 // ============================================================================
 // Hero Component
 // ============================================================================
@@ -308,12 +307,15 @@ function getGreetingData(): GreetingData {
 export default function Hero() {
   const [mounted, setMounted] = useState(false);
   const [greetingData, setGreetingData] = useState<GreetingData>({ timePeriod: "morning", location: "" });
-  const [nameComplete, setNameComplete] = useState(false);
+  const [visitorLine, setVisitorLine] = useState("");
   const [nameText, setNameText] = useState("");
+  const [nameComplete, setNameComplete] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    setGreetingData(getGreetingData());
+    const data = getGreetingData();
+    setGreetingData(data);
+    setVisitorLine(getVisitorLine(data.location));
   }, []);
 
   const greetings = greetingsByPeriod[greetingData.timePeriod] || defaultGreetings;
@@ -324,17 +326,16 @@ export default function Hero() {
     descriptionText,
     showCursor,
     isDescriptionComplete,
-    startPersonaTyping,
+    startTyping,
   } = useRotatingContent({
     greetings,
     personas,
-    location: greetingData.location,
     personaTypingSpeed: 3,
     personaDeleteSpeed: 2,
     displayDuration: 2500,
   });
 
-  // Type "I'm Wentao" immediately when mounted (parallel with greeting)
+  // Type "I'm Wentao" when mounted (parallel with greeting scramble)
   useEffect(() => {
     if (!mounted || nameComplete) return;
 
@@ -346,9 +347,9 @@ export default function Hero() {
       return () => clearTimeout(timeout);
     } else {
       setNameComplete(true);
-      startPersonaTyping();
+      startTyping();
     }
-  }, [mounted, nameText, nameComplete, startPersonaTyping]);
+  }, [mounted, nameText, nameComplete, startTyping]);
 
   return (
     <section
@@ -362,15 +363,26 @@ export default function Hero() {
           transition={{ duration: 0.3, ease: "easeOut" }}
           className="space-y-6 relative z-20 pointer-events-none"
         >
-          {/* Greeting line */}
+          {/* Visitor + Greeting lines */}
           {mounted && (
-            <div className="h-6">
-              <ScrambleText
-                text={greetingTarget}
-                className="text-accent text-sm font-medium tracking-wide"
-                scrambleSpeed={20}
-                revealSpeed={15}
-              />
+            <div className="space-y-1">
+              <div className="h-5">
+                <ScrambleText
+                  text={visitorLine}
+                  className="text-muted/60 text-xs font-medium tracking-wide"
+                  scrambleSpeed={15}
+                  revealSpeed={12}
+                />
+              </div>
+              <div className="h-6 flex items-center gap-2">
+                <span className="text-accent/50 text-sm">└</span>
+                <ScrambleText
+                  text={greetingTarget}
+                  className="text-accent text-sm font-medium tracking-wide"
+                  scrambleSpeed={20}
+                  revealSpeed={15}
+                />
+              </div>
             </div>
           )}
 
