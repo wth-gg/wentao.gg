@@ -200,13 +200,16 @@ export default function Navigation() {
               <ThemeToggle />
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 text-muted hover:text-foreground transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            {/* Mobile: Theme Toggle + Menu Button */}
+            <div className="md:hidden flex items-center gap-2">
+              <ThemeToggle />
+              <button
+                className="p-2 text-muted hover:text-foreground transition-colors"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </div>
         </div>
       </motion.nav>
@@ -321,9 +324,6 @@ export default function Navigation() {
                   </motion.a>
                 )
               ))}
-              <div className="mt-6">
-                <ThemeToggle />
-              </div>
             </div>
           </motion.div>
         )}
