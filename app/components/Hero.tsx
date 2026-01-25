@@ -308,7 +308,6 @@ function getGreetingData(): GreetingData {
 export default function Hero() {
   const [mounted, setMounted] = useState(false);
   const [greetingData, setGreetingData] = useState<GreetingData>({ timePeriod: "morning", location: "" });
-  const [greetingComplete, setGreetingComplete] = useState(false);
   const [nameComplete, setNameComplete] = useState(false);
   const [nameText, setNameText] = useState("");
 
@@ -335,9 +334,9 @@ export default function Hero() {
     displayDuration: 2500,
   });
 
-  // Type "I'm Wentao" after greeting completes
+  // Type "I'm Wentao" immediately when mounted (parallel with greeting)
   useEffect(() => {
-    if (!greetingComplete || nameComplete) return;
+    if (!mounted || nameComplete) return;
 
     const target = "I'm Wentao";
     if (nameText.length < target.length) {
@@ -349,7 +348,7 @@ export default function Hero() {
       setNameComplete(true);
       startPersonaTyping();
     }
-  }, [greetingComplete, nameText, nameComplete, startPersonaTyping]);
+  }, [mounted, nameText, nameComplete, startPersonaTyping]);
 
   return (
     <section
@@ -371,7 +370,6 @@ export default function Hero() {
                 className="text-accent text-sm font-medium tracking-wide"
                 scrambleSpeed={25}
                 revealSpeed={40}
-                onComplete={() => setGreetingComplete(true)}
               />
             </div>
           )}
@@ -380,7 +378,7 @@ export default function Hero() {
             {/* Name */}
             <div className="min-h-[3.5rem] md:min-h-[5rem]">
               <span className="text-5xl md:text-7xl font-bold tracking-[-0.04em] text-foreground text-shimmer">
-                {greetingComplete && nameText}
+                {nameText}
               </span>
             </div>
 
