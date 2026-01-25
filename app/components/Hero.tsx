@@ -368,8 +368,8 @@ export default function Hero() {
               <ScrambleText
                 text={greetingTarget}
                 className="text-accent text-sm font-medium tracking-wide"
-                scrambleSpeed={25}
-                revealSpeed={40}
+                scrambleSpeed={20}
+                revealSpeed={15}
               />
             </div>
           )}
