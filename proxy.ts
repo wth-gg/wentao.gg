@@ -26,7 +26,7 @@ const usStates: Record<string, string> = {
   DC: "Washington D.C.",
 };
 
-// Country codes to names for non-US
+// Country codes to names
 const countryNames: Record<string, string> = {
   CA: "Canada", GB: "United Kingdom", DE: "Germany", FR: "France", JP: "Japan", CN: "China",
   KR: "South Korea", AU: "Australia", BR: "Brazil", IN: "India", MX: "Mexico", ES: "Spain",
@@ -48,7 +48,7 @@ function getTimePeriod(hour: number): string {
   return "late_night";
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
   // Get geolocation data from Vercel headers (city may be URL-encoded)
@@ -92,7 +92,9 @@ export function middleware(request: NextRequest) {
   }
 
   if (region) {
-    locationParts.push(region);
+    // Convert US state codes to full names, keep other regions as-is
+    const regionName = country === "US" ? (usStates[region] || region) : region;
+    locationParts.push(regionName);
   }
 
   if (countryName) {
