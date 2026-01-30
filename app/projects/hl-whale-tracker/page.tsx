@@ -38,14 +38,6 @@ export default function HLWhaleTracker() {
         aVal = a.winRate;
         bVal = b.winRate;
         break;
-      case "sharpe":
-        aVal = a.sharpe;
-        bVal = b.sharpe;
-        break;
-      case "trades":
-        aVal = a.trades;
-        bVal = b.trades;
-        break;
       case "volume":
         aVal = a.volume;
         bVal = b.volume;
@@ -103,7 +95,7 @@ export default function HLWhaleTracker() {
             🐋 Tracker
           </h2>
           <p className="text-muted text-xs sm:text-sm hidden sm:block">
-            Track top traders by PnL, win rate, and performance metrics
+            Track top traders by PnL, ROI, and volume
           </p>
         </motion.div>
 
@@ -207,7 +199,7 @@ export default function HLWhaleTracker() {
                   />
                   Hyperliquid
                 </a>
-                <span>API. Metrics calculated client-side.</span>
+                <span>leaderboard API.</span>
               </p>
             </motion.div>
           </motion.div>

@@ -1,60 +1,32 @@
-export interface WhaleAddress {
-  address: string;
-  label?: string;
+// Leaderboard API response types
+export interface LeaderboardWindowPerformance {
+  pnl: string;
+  roi: string;
+  vlm: string;
 }
 
-export interface Position {
-  coin: string;
-  szi: string; // Size (positive = long, negative = short)
-  entryPx: string;
-  positionValue: string;
-  unrealizedPnl: string;
-  returnOnEquity: string;
-  leverage: {
-    type: string;
-    value: number;
-  };
+export interface LeaderboardRow {
+  ethAddress: string;
+  accountValue: string;
+  windowPerformances: (LeaderboardWindowPerformance | null)[];
 }
 
-export interface Fill {
-  coin: string;
-  px: string; // Price
-  sz: string; // Size
-  side: "B" | "A"; // Buy or Ask (Sell)
-  time: number; // Unix timestamp ms
-  startPosition: string;
-  dir: string;
-  closedPnl: string;
-  hash: string;
-  oid: number;
-  crossed: boolean;
-  fee: string;
-  tid: number;
+export interface LeaderboardApiResponse {
+  leaderboardRows: LeaderboardRow[];
 }
 
-export interface ClearinghouseState {
-  assetPositions: {
-    position: Position;
-    type: string;
-  }[];
-  crossMarginSummary: {
-    accountValue: string;
-    totalMarginUsed: string;
-    totalNtlPos: string;
-    totalRawUsd: string;
-  };
-  marginSummary: {
-    accountValue: string;
-    totalMarginUsed: string;
-    totalNtlPos: string;
-    totalRawUsd: string;
-  };
-  withdrawable: string;
-}
+// Time window indices in the windowPerformances array
+// Based on Hyperliquid's leaderboard API
+export const TIME_WINDOW_INDEX = {
+  "1d": 0,   // day
+  "7d": 1,   // week
+  "30d": 2,  // month
+  "allTime": 3, // all time
+} as const;
 
-export type TimePeriod = "24h" | "7d" | "30d" | "all";
+export type TimePeriod = "1d" | "7d" | "30d" | "allTime";
 
-export type SortField = "pnl" | "winRate" | "sharpe" | "trades" | "volume";
+export type SortField = "pnl" | "winRate" | "volume";
 
 export type SortDirection = "asc" | "desc";
 
@@ -62,9 +34,7 @@ export interface TraderMetrics {
   address: string;
   label?: string;
   pnl: number;
-  winRate: number;
-  sharpe: number;
-  trades: number;
+  winRate: number; // Actually ROI from API
   volume: number;
   accountValue: number;
   lastUpdated: number;

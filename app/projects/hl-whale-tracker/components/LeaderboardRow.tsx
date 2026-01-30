@@ -6,10 +6,7 @@ import {
   formatAddress,
   formatCurrency,
   formatPercent,
-  formatSharpe,
-  formatNumber,
   getPnLColorClass,
-  getSharpeColorClass,
 } from "../lib/formatters";
 
 interface LeaderboardRowProps {
@@ -71,21 +68,11 @@ export default function LeaderboardRow({ trader, rank }: LeaderboardRowProps) {
         </span>
       </td>
 
-      {/* Win Rate */}
+      {/* ROI */}
       <td className="py-3 px-2 sm:px-4 text-right">
-        <span className="tabular-nums">{formatPercent(trader.winRate)}</span>
-      </td>
-
-      {/* Sharpe */}
-      <td className="py-3 px-2 sm:px-4 text-right hidden md:table-cell">
-        <span className={`tabular-nums ${getSharpeColorClass(trader.sharpe)}`}>
-          {formatSharpe(trader.sharpe)}
+        <span className={`tabular-nums ${getPnLColorClass(trader.winRate)}`}>
+          {formatPercent(trader.winRate)}
         </span>
-      </td>
-
-      {/* Trades */}
-      <td className="py-3 px-2 sm:px-4 text-right hidden sm:table-cell">
-        <span className="tabular-nums text-muted">{formatNumber(trader.trades)}</span>
       </td>
 
       {/* Volume */}

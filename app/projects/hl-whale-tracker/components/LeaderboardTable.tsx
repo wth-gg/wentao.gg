@@ -34,12 +34,6 @@ function TableSkeleton() {
           <td className="py-3 px-4 text-right">
             <div className="h-4 w-12 bg-card animate-pulse rounded ml-auto" />
           </td>
-          <td className="py-3 px-4 text-right hidden md:table-cell">
-            <div className="h-4 w-10 bg-card animate-pulse rounded ml-auto" />
-          </td>
-          <td className="py-3 px-4 text-right hidden sm:table-cell">
-            <div className="h-4 w-10 bg-card animate-pulse rounded ml-auto" />
-          </td>
           <td className="py-3 px-4 text-right hidden lg:table-cell">
             <div className="h-4 w-16 bg-card animate-pulse rounded ml-auto" />
           </td>
@@ -116,26 +110,8 @@ export default function LeaderboardTable({
               </th>
               <th className="py-3 px-2 sm:px-4 text-right">
                 <SortHeader
-                  label="Win Rate"
+                  label="ROI"
                   field="winRate"
-                  currentField={sortField}
-                  direction={sortDirection}
-                  onSort={onSort}
-                />
-              </th>
-              <th className="py-3 px-2 sm:px-4 text-right hidden md:table-cell">
-                <SortHeader
-                  label="Sharpe"
-                  field="sharpe"
-                  currentField={sortField}
-                  direction={sortDirection}
-                  onSort={onSort}
-                />
-              </th>
-              <th className="py-3 px-2 sm:px-4 text-right hidden sm:table-cell">
-                <SortHeader
-                  label="Trades"
-                  field="trades"
                   currentField={sortField}
                   direction={sortDirection}
                   onSort={onSort}
@@ -157,7 +133,7 @@ export default function LeaderboardTable({
               <TableSkeleton />
             ) : isEmpty ? (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-muted">
+                <td colSpan={5} className="py-12 text-center text-muted">
                   No traders found with activity in this period
                 </td>
               </tr>

@@ -8,10 +8,10 @@ interface TimeFilterProps {
 }
 
 const periods: { value: TimePeriod; label: string }[] = [
-  { value: "24h", label: "24H" },
+  { value: "1d", label: "24H" },
   { value: "7d", label: "7D" },
   { value: "30d", label: "30D" },
-  { value: "all", label: "All" },
+  { value: "allTime", label: "All" },
 ];
 
 export default function TimeFilter({ value, onChange }: TimeFilterProps) {

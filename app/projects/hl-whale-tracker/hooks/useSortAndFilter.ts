@@ -33,14 +33,6 @@ export function useSortAndFilter(traders: TraderMetrics[]) {
           aVal = a.winRate;
           bVal = b.winRate;
           break;
-        case "sharpe":
-          aVal = a.sharpe;
-          bVal = b.sharpe;
-          break;
-        case "trades":
-          aVal = a.trades;
-          bVal = b.trades;
-          break;
         case "volume":
           aVal = a.volume;
           bVal = b.volume;

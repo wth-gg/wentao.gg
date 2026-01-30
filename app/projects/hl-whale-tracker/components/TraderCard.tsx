@@ -6,10 +6,7 @@ import {
   formatAddress,
   formatCurrency,
   formatPercent,
-  formatSharpe,
-  formatNumber,
   getPnLColorClass,
-  getSharpeColorClass,
 } from "../lib/formatters";
 
 interface TraderCardProps {
@@ -62,26 +59,10 @@ export default function TraderCard({ trader, rank }: TraderCardProps) {
       <div className="grid grid-cols-2 gap-2">
         <div className="bg-background rounded-lg p-2.5">
           <div className="text-[10px] uppercase tracking-wide text-muted mb-0.5">
-            Win Rate
+            ROI
           </div>
-          <div className="font-semibold tabular-nums">
+          <div className={`font-semibold tabular-nums ${getPnLColorClass(trader.winRate)}`}>
             {formatPercent(trader.winRate)}
-          </div>
-        </div>
-        <div className="bg-background rounded-lg p-2.5">
-          <div className="text-[10px] uppercase tracking-wide text-muted mb-0.5">
-            Sharpe
-          </div>
-          <div className={`font-semibold tabular-nums ${getSharpeColorClass(trader.sharpe)}`}>
-            {formatSharpe(trader.sharpe)}
-          </div>
-        </div>
-        <div className="bg-background rounded-lg p-2.5">
-          <div className="text-[10px] uppercase tracking-wide text-muted mb-0.5">
-            Trades
-          </div>
-          <div className="font-semibold tabular-nums">
-            {formatNumber(trader.trades)}
           </div>
         </div>
         <div className="bg-background rounded-lg p-2.5">
