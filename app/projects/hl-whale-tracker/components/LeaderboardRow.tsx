@@ -1,0 +1,99 @@
+"use client";
+
+import { ExternalLink } from "lucide-react";
+import { TraderMetrics } from "../lib/types";
+import {
+  formatAddress,
+  formatCurrency,
+  formatPercent,
+  formatSharpe,
+  formatNumber,
+  getPnLColorClass,
+  getSharpeColorClass,
+} from "../lib/formatters";
+
+interface LeaderboardRowProps {
+  trader: TraderMetrics;
+  rank: number;
+}
+
+export default function LeaderboardRow({ trader, rank }: LeaderboardRowProps) {
+  const explorerUrl = `https://app.hyperliquid.xyz/explorer/address/${trader.address}`;
+
+  return (
+    <tr className="border-b border-border hover:bg-card-hover transition-colors">
+      {/* Rank */}
+      <td className="py-3 px-3 sm:px-4">
+        <span
+          className={`font-bold tabular-nums ${
+            rank === 1
+              ? "text-yellow-500"
+              : rank === 2
+              ? "text-gray-400"
+              : rank === 3
+              ? "text-amber-600"
+              : "text-muted"
+          }`}
+        >
+          #{rank}
+        </span>
+      </td>
+
+      {/* Address */}
+      <td className="py-3 px-2 sm:px-4">
+        <a
+          href={explorerUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 group"
+        >
+          <div className="flex flex-col">
+            {trader.label && (
+              <span className="font-medium text-foreground group-hover:text-accent transition-colors">
+                {trader.label}
+              </span>
+            )}
+            <span className="text-xs text-muted font-mono">
+              {formatAddress(trader.address, 6)}
+            </span>
+          </div>
+          <ExternalLink
+            size={12}
+            className="text-muted opacity-0 group-hover:opacity-100 transition-opacity"
+          />
+        </a>
+      </td>
+
+      {/* PnL */}
+      <td className="py-3 px-2 sm:px-4 text-right">
+        <span className={`font-semibold tabular-nums ${getPnLColorClass(trader.pnl)}`}>
+          {formatCurrency(trader.pnl, { showSign: true, compact: true })}
+        </span>
+      </td>
+
+      {/* Win Rate */}
+      <td className="py-3 px-2 sm:px-4 text-right">
+        <span className="tabular-nums">{formatPercent(trader.winRate)}</span>
+      </td>
+
+      {/* Sharpe */}
+      <td className="py-3 px-2 sm:px-4 text-right hidden md:table-cell">
+        <span className={`tabular-nums ${getSharpeColorClass(trader.sharpe)}`}>
+          {formatSharpe(trader.sharpe)}
+        </span>
+      </td>
+
+      {/* Trades */}
+      <td className="py-3 px-2 sm:px-4 text-right hidden sm:table-cell">
+        <span className="tabular-nums text-muted">{formatNumber(trader.trades)}</span>
+      </td>
+
+      {/* Volume */}
+      <td className="py-3 px-2 sm:px-4 text-right hidden lg:table-cell">
+        <span className="tabular-nums text-muted">
+          {formatCurrency(trader.volume, { compact: true, decimals: 1 })}
+        </span>
+      </td>
+    </tr>
+  );
+}

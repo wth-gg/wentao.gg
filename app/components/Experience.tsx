@@ -1,8 +1,8 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
-import { MapPin, Calendar } from "lucide-react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { useRef, useState } from "react";
+import { MapPin, Calendar, ChevronDown } from "lucide-react";
 import Image from "next/image";
 
 interface Experience {
@@ -70,9 +70,13 @@ const experiences: Experience[] = [
 function ExperienceCard({
   experience,
   index,
+  isExpanded,
+  onToggle,
 }: {
   experience: Experience;
   index: number;
+  isExpanded: boolean;
+  onToggle: () => void;
 }) {
   const cardRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -110,56 +114,92 @@ function ExperienceCard({
         </div>
 
         {/* Card content */}
-        <div className="flex-1 bg-white/5 backdrop-blur-lg hover:bg-white/10 rounded-xl p-6 md:p-8 transition-all duration-300 border border-white/10 hover:border-white/20 hover:card-shadow group pointer-events-auto">
-          <div className="flex items-center gap-4 mb-4">
-            {experience.logo && (
-              <div className="flex-shrink-0 w-12 h-12 bg-white">
-                <Image
-                  src={experience.logo}
-                  alt={`${experience.company} logo`}
-                  width={48}
-                  height={48}
-                  className="w-full h-full object-contain"
-                />
+        <div className="flex-1 bg-white/5 backdrop-blur-lg hover:bg-white/10 rounded-xl transition-all duration-300 border border-white/10 hover:border-white/20 hover:card-shadow group pointer-events-auto overflow-hidden">
+          {/* Clickable header */}
+          <button
+            onClick={onToggle}
+            className="w-full text-left p-6 md:p-8"
+          >
+            <div className="flex items-center gap-4 mb-3">
+              {experience.logo && (
+                <div className="flex-shrink-0 w-12 h-12 bg-white">
+                  <Image
+                    src={experience.logo}
+                    alt={`${experience.company} logo`}
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xl md:text-2xl font-semibold text-foreground group-hover:text-accent transition-colors">
+                  {experience.company}
+                </h3>
+                <p className="text-accent font-medium">{experience.title}</p>
               </div>
-            )}
-            <div className="flex-1">
-              <h3 className="text-xl md:text-2xl font-semibold text-foreground group-hover:text-accent transition-colors">
-                {experience.company}
-              </h3>
-              <p className="text-accent font-medium">{experience.title}</p>
+              <ChevronDown
+                size={20}
+                className={`text-muted flex-shrink-0 transition-transform duration-300 ${
+                  isExpanded ? "rotate-180" : ""
+                }`}
+              />
             </div>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted mb-4">
-            <span className="flex items-center gap-1.5">
-              <Calendar size={14} className="text-muted" />
-              {experience.period}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <MapPin size={14} className="text-muted" />
-              {experience.location}
-            </span>
-          </div>
-
-          <ul className="space-y-2 mb-6">
-            {experience.description.map((item, i) => (
-              <li key={i} className="text-muted leading-relaxed pl-4 border-l border-border">
-                {item}
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex flex-wrap gap-2">
-            {experience.technologies.map((tech) => (
-              <span
-                key={tech}
-                className="px-3 py-1 text-xs font-medium bg-muted/20 text-foreground rounded-full"
-              >
-                {tech}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted">
+              <span className="flex items-center gap-1 sm:gap-1.5">
+                <Calendar size={12} className="sm:w-3.5 sm:h-3.5 text-muted" />
+                {experience.period}
               </span>
-            ))}
-          </div>
+              <span className="flex items-center gap-1 sm:gap-1.5">
+                <MapPin size={12} className="sm:w-3.5 sm:h-3.5 text-muted" />
+                {experience.location}
+              </span>
+            </div>
+          </button>
+
+          {/* Expandable content */}
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="px-6 md:px-8 pb-6 md:pb-8">
+                  <ul className="space-y-2 mb-6">
+                    {experience.description.map((item, i) => (
+                      <motion.li
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="text-muted leading-relaxed pl-4 border-l border-border"
+                      >
+                        {item}
+                      </motion.li>
+                    ))}
+                  </ul>
+
+                  <div className="flex flex-wrap gap-2">
+                    {experience.technologies.map((tech, i) => (
+                      <motion.span
+                        key={tech}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.1 + i * 0.03 }}
+                        className="px-3 py-1 text-xs font-medium bg-muted/20 text-foreground rounded-full"
+                      >
+                        {tech}
+                      </motion.span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>
@@ -168,6 +208,21 @@ function ExperienceCard({
 
 export default function Experience() {
   const containerRef = useRef(null);
+  const [expandedJobs, setExpandedJobs] = useState<Set<number>>(
+    new Set() // Start with all collapsed
+  );
+
+  const toggleJob = (index: number) => {
+    setExpandedJobs((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  };
 
   return (
     <section id="experience" className="py-24 px-6 relative z-20 pointer-events-none">
@@ -185,7 +240,13 @@ export default function Experience() {
 
         <div ref={containerRef} className="space-y-8 md:space-y-10">
           {experiences.map((experience, index) => (
-            <ExperienceCard key={index} experience={experience} index={index} />
+            <ExperienceCard
+              key={index}
+              experience={experience}
+              index={index}
+              isExpanded={expandedJobs.has(index)}
+              onToggle={() => toggleJob(index)}
+            />
           ))}
         </div>
       </div>
