@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, Dumbbell, Video, TrendingUp, Folder } from "lucide-react";
+import { Menu, X, ChevronDown, Dumbbell, Video, TrendingUp, Folder, FileSpreadsheet } from "lucide-react";
 import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
 
@@ -50,6 +50,12 @@ const projectCategories: ProjectCategory[] = [
         href: "/projects/poweropps",
         description: "Powerlifting index calculator",
         icon: Dumbbell,
+      },
+      {
+        name: "ProgDash",
+        href: "/projects/progdash",
+        description: "Google Sheets program viewer",
+        icon: FileSpreadsheet,
       },
       {
         name: "What's my RPE?",

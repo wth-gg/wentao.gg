@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ExternalLink, Dumbbell, Video, TrendingUp, Folder, ChevronDown } from "lucide-react";
+import { ExternalLink, Dumbbell, Video, TrendingUp, Folder, ChevronDown, FileSpreadsheet } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -49,6 +49,14 @@ const projectCategories: ProjectCategory[] = [
         technologies: ["Next.js", "TypeScript", "Tailwind", "Framer Motion"],
         href: "/projects/poweropps",
         icon: Dumbbell,
+      },
+      {
+        title: "ProgDash",
+        description:
+          "A Google Sheets-powered training log that authenticates via Google OAuth, pulls your powerlifting program spreadsheet, and parses the cells into a clean, readable interface for tracking blocks, sets, and progression.",
+        technologies: ["Next.js", "TypeScript", "Google OAuth", "Google Sheets API", "Tailwind"],
+        href: "/projects/progdash",
+        icon: FileSpreadsheet,
       },
       {
         title: "What's my RPE?",
