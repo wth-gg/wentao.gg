@@ -8,8 +8,10 @@ import Image from "next/image";
 interface Degree {
   degreeType: string;
   field: string;
+  fieldLink?: string;
   period: string;
   location: string;
+  locationLink?: string;
 }
 
 interface Highlight {
@@ -19,6 +21,7 @@ interface Highlight {
 
 interface School {
   name: string;
+  url?: string;
   logo?: string;
   degrees: Degree[];
   highlights?: Highlight[];
@@ -27,32 +30,40 @@ interface School {
 const education: School[] = [
   {
     name: "University of Pennsylvania",
+    url: "https://www.upenn.edu",
     logo: "/images/profile/University-of-Pennsylvania-Logo-PNG7.png",
     degrees: [
       {
         degreeType: "Master of Science",
         field: "Robotics (Artificial Intelligence)",
+        fieldLink: "https://www.grasp.upenn.edu/",
         period: "May 2020",
         location: "Philadelphia, PA",
+        locationLink: "https://maps.app.goo.gl/YnvqcgUp48qooJoj9",
       },
     ],
     highlights: [{ text: "Research @ Perelman School of Medicine" }],
   },
   {
     name: "Carnegie Mellon University",
+    url: "https://www.cmu.edu",
     logo: "/images/profile/cmu-wordmark-square-w-on-r.png",
     degrees: [
       {
         degreeType: "Master of Science",
         field: "Mechanical Engineering",
+        fieldLink: "https://www.meche.engineering.cmu.edu/",
         period: "Dec 2017",
         location: "Pittsburgh, PA",
+        locationLink: "https://maps.app.goo.gl/YTjegkLknQ6pWHwa6",
       },
       {
         degreeType: "Bachelor of Science",
         field: "Mechanical Engineering",
+        fieldLink: "https://www.meche.engineering.cmu.edu/",
         period: "May 2017",
         location: "Pittsburgh, PA",
+        locationLink: "https://maps.app.goo.gl/YTjegkLknQ6pWHwa6",
       },
     ],
     highlights: [
@@ -119,7 +130,13 @@ function EducationCard({
               </div>
             )}
             <h3 className="text-xl md:text-2xl font-semibold text-foreground group-hover:text-accent transition-colors">
-              {school.name}
+              {school.url ? (
+                <a href={school.url} target="_blank" rel="noopener noreferrer" className="transition-all duration-300 hover:text-accent hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]">
+                  {school.name}
+                </a>
+              ) : (
+                school.name
+              )}
             </h3>
           </div>
 
@@ -131,17 +148,30 @@ function EducationCard({
               >
                 <p className="font-medium mb-2">
                   <span className="text-accent">{degree.degreeType}</span>
-                  <span className="text-foreground"> in {degree.field}</span>
+                  <span className="text-foreground"> in {degree.fieldLink ? (
+                    <a href={degree.fieldLink} target="_blank" rel="noopener noreferrer" className="transition-all duration-300 hover:text-accent hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]">
+                      {degree.field}
+                    </a>
+                  ) : (
+                    degree.field
+                  )}</span>
                 </p>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted">
                   <span className="flex items-center gap-1.5">
                     <Calendar size={14} className="text-muted" />
                     {degree.period}
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <MapPin size={14} className="text-muted" />
-                    {degree.location}
-                  </span>
+                  {degree.locationLink ? (
+                    <a href={degree.locationLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 transition-all duration-300 hover:text-accent hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]">
+                      <MapPin size={14} className="text-muted" />
+                      {degree.location}
+                    </a>
+                  ) : (
+                    <span className="flex items-center gap-1.5">
+                      <MapPin size={14} className="text-muted" />
+                      {degree.location}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
