@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import SessionWrapper from "./SessionWrapper";
 
 export const metadata: Metadata = {
   title: "ProgDash | Powerlifting Program Viewer",
@@ -23,5 +24,5 @@ export default function ProgDashLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return <SessionWrapper>{children}</SessionWrapper>;
 }
