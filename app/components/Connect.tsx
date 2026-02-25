@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mail, Github, Linkedin, Instagram } from "lucide-react";
+import { Mail, Github, Linkedin } from "lucide-react";
 
 const socialLinks = [
   {
@@ -13,11 +13,6 @@ const socialLinks = [
     name: "GitHub",
     href: "https://github.com/wth-gg",
     icon: Github,
-  },
-  {
-    name: "Instagram",
-    href: "https://www.instagram.com/taustitos/",
-    icon: Instagram,
   },
   {
     name: "Email",

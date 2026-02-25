@@ -1,6 +1,6 @@
 "use client";
 
-import { Github, Linkedin, Mail, Instagram } from "lucide-react";
+import { Github, Linkedin, Mail } from "lucide-react";
 
 function formatLastUpdated(isoString: string | undefined): string {
   if (!isoString) return "";
@@ -46,14 +46,6 @@ export default function Footer() {
               className="text-muted hover:text-foreground transition-colors"
             >
               <Github size={18} />
-            </a>
-            <a
-              href="https://www.instagram.com/taustitos/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted hover:text-foreground transition-colors"
-            >
-              <Instagram size={18} />
             </a>
             <a
               href="mailto:me@wentao.gg"
