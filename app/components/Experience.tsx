@@ -8,6 +8,7 @@ import Image from "next/image";
 interface Experience {
   title: string;
   company: string;
+  companyUrl?: string;
   logo?: string;
   period: string;
   location: string;
@@ -17,40 +18,45 @@ interface Experience {
 
 const experiences: Experience[] = [
   {
+    title: "Software Engineer",
+    company: "Mercor",
+    companyUrl: "https://www.mercor.com/",
+    logo: "/images/profile/mercor_logo.png",
+    period: "Mar 2026 - Present",
+    location: "San Francisco, CA",
+    description: [
+      "Applied AI Team",
+    ],
+    technologies: [],
+  },
+  {
     title: "Data Engineer",
     company: "Meta",
+    companyUrl: "https://www.meta.com/",
     logo: "/images/profile/meta_logo.jpeg",
-    period: "May 2024 - Present",
+    period: "May 2024 - Mar 2026",
     location: "New York City, NY",
-    description: [
-      "Owned large-scale multi-device data infrastructure and pipeline development, enabling data-driven decisions to support AR Glasses and next-gen wearable product launches.",
-      "Built a scalable contribution analysis framework powering tier-0 product analytics metrics from user- and device-level event data, enabling automated alerting and root-cause analysis across executive dashboards.",
-      "Designed canonical validation datasets and a fault-tolerant framework, quantifying impacted users/devices and accelerating debugging of data integrity issues during launches.",
-    ],
+    description: [],
     technologies: ["Python", "SQL", "Java", "PHP", "Spark", "Presto"],
   },
   {
     title: "Data Engineer",
     company: "Cherre",
+    companyUrl: "https://cherre.com/",
     logo: "/images/profile/cherre_logo.jpeg",
     period: "Nov 2022 - May 2024",
     location: "New York City, NY",
-    description: [
-      "Deployed transformer-based text classification and LLM extraction pipelines for real estate documents, achieving 95%+ accuracy through systematic evaluation and error analysis.",
-      "Engineered and operated automated, TB-scale data pipelines across AWS and GCP, leveraging Docker and Kubernetes to improve scalability and deployment velocity.",
-    ],
+    description: [],
     technologies: ["Python", "SQL", "PyTorch", "Postgres", "BigQuery", "Airflow", "dbt", "AWS", "GCP", "Docker", "Kubernetes"],
   },
   {
     title: "Data Engineer",
     company: "Mashey",
+    companyUrl: "https://www.analytics8.com/blog/analytics8-acquires-mashey-investing-more-in-the-future-of-data-and-analytics-consulting/",
     logo: "/images/profile/mashey_logo.jpeg",
     period: "Oct 2021 - Nov 2022",
     location: "Remote",
-    description: [
-      "Developed a property recommendation engine using 15+ features, improving user engagement by 40% and increasing search relevance.",
-      "Architected cloud data warehouse infrastructure with near-real-time ingestion pipelines processing 10M+ property records daily.",
-    ],
+    description: [],
     technologies: ["Python", "SQL", "PyTorch", "Postgres", "BigQuery", "Airflow", "dbt", "AWS", "GCP", "Docker", "Kubernetes"],
   },
   {
@@ -59,10 +65,7 @@ const experiences: Experience[] = [
     logo: "/images/profile/jefferson_street_technologies_logo.jpeg",
     period: "May 2020 - Oct 2021",
     location: "Remote",
-    description: [
-      "Implemented predictive ML models for financial datasets, improving portfolio returns by 6% annually through rapid prototyping and evaluation.",
-      "Built and productionized ML pipelines, reducing training time by 60% while maintaining 99.8% data quality.",
-    ],
+    description: [],
     technologies: ["Python", "SQL", "TensorFlow", "PyTorch", "RAG"],
   },
 ];
@@ -133,7 +136,10 @@ function ExperienceCard({
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h3 className="text-xl md:text-2xl font-semibold text-foreground group-hover:text-accent transition-colors">
+                <h3
+                  className={`text-xl md:text-2xl font-semibold text-foreground group-hover:text-accent transition-colors ${experience.companyUrl ? "hover:underline cursor-pointer" : ""}`}
+                  onClick={experience.companyUrl ? (e) => { e.stopPropagation(); window.open(experience.companyUrl, "_blank", "noopener,noreferrer"); } : undefined}
+                >
                   {experience.company}
                 </h3>
                 <p className="text-accent font-medium">{experience.title}</p>
